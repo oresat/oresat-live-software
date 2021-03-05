@@ -3,5 +3,9 @@ project(camera)
 
 file(GLOB sources ./*)
 
-add_executable(imagecapture ${sources})
 
+
+
+
+add_executable(imagecapture ${sources})
+set(CMAKE_CXX_LINK_FLAGS "-lv4l1 -lv4l2")

@@ -7,10 +7,20 @@
 *  NOTES:
     Uses v4l2, jpeglib for image processing and conversion
 */
+#define CLEAR(x) memset(&(x), 0, sizeof(x))
 
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/mman.h>
+#include <libv4l2.h>
+#include <linux/videodev2.h>
 
 
 
@@ -20,6 +30,30 @@ char * width;
 char * height;
 char * fps;
 char * capture_duration;
+
+
+struct capbuffer{
+    void * start;
+    size_t length;
+};
+
+static void camctrl(int fh, int request, void *arg){
+
+    int returnvalue;
+    do{
+        returnvalue = v4l2_ioctl(fh, request, arg);
+
+    }while(returnvalue == -1 && ((errno == EINTR) || (errno == EAGAIN)));
+    
+    if(returnvalue == -1){
+        printf("CAMERA ERROR: Camera controller failure\n");
+        exit(EXIT_FAILURE);
+    }
+
+}
+
+
+
 
 //checkinput
 /*
@@ -55,7 +89,7 @@ int checkinput(char * device, char * width, char *height, char*fps, char *captur
     float ratio = widthint / heightint;
 
     //Check if the video device has the right name
-    if(strcmp(device, "/dev/video0") != 0){
+    if(strcmp(device, "/dev/video1") != 0){
         printf("INPUT ERROR: This is probably the wrong video device(unless you're testing)\n");
         is_valid = 0;
     }
@@ -95,19 +129,127 @@ int checkinput(char * device, char * width, char *height, char*fps, char *captur
     }
 }
 
-
+//TODO: Comments, error checking
 int main(int argc, char *argv[]){
     device = argv[1];
     width = argv[2];
     height = argv[3];
     fps = argv[4];
     capture_duration = argv[5];
+
+    int numberofimages = 0;
+
+
     
     if(!checkinput(device,width,height,fps,capture_duration)){
         printf("Input invalid! See error output\n");
         exit(EXIT_FAILURE);
     }
 
+    if(fps != NULL && capture_duration != NULL){
+        int f = atoi(fps);
+        int cd = atoi(capture_duration);
+    
+        numberofimages = f * cd;
+        
+    }
+
+    struct v4l2_format format;
+    struct v4l2_buffer vidbuffer;
+    struct v4l2_requestbuffers request;
+    enum v4l2_buf_type buffertype;
+    fd_set framedataset;
+    struct timeval timevalue;
+    int r;
+    int fd = -1;
+    unsigned int i, numberofbuffers;
+    char jpegname[256];
+    FILE *fout;
+    struct capbuffer *buffers;
+
+    fd = v4l2_open(device, O_RDWR | O_NONBLOCK,0);
+    if(fd < 0){
+        printf("CAMERA ERROR: Video device cannot be opened\n");
+        exit(EXIT_FAILURE);
+    }
+    CLEAR(format);
+    format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    format.fmt.pix.width = atoi(width);
+    format.fmt.pix.height = atoi(height);
+    format.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
+    format.fmt.pix.field = V4L2_FIELD_INTERLACED;
+    camctrl(fd, VIDIOC_S_FMT, &format);
+    
+    CLEAR(request);
+    request.count = 2;
+    request.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    request.memory = V4L2_MEMORY_MMAP;
+    camctrl(fd, VIDIOC_REQBUFS, &request);
+
+    buffers = calloc(request.count, sizeof(*buffers));
+    for(numberofbuffers = 0; numberofbuffers < request.count; ++numberofbuffers){
+        CLEAR(vidbuffer);
+        vidbuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        vidbuffer.memory = V4L2_MEMORY_MMAP;
+        vidbuffer.index = numberofbuffers;
+        camctrl(fd, VIDIOC_QUERYBUF, &vidbuffer);
+
+        buffers[numberofbuffers].length = vidbuffer.length;
+        buffers[numberofbuffers].start = v4l2_mmap(NULL,
+         vidbuffer.length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, vidbuffer.m.offset);
+        if(MAP_FAILED == buffers[numberofbuffers].start){
+            printf("MEMORY ERROR: Buffer mapping failed\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    for(i = 0; i < numberofbuffers; ++i){
+        CLEAR(vidbuffer);
+        vidbuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        vidbuffer.memory = V4L2_MEMORY_MMAP;
+        vidbuffer.index = i;
+        camctrl(fd, VIDIOC_QBUF, &vidbuffer);
+    }
+    buffertype = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+    camctrl(fd, VIDIOC_STREAMON, &buffertype);
+    for(i = 0; i < numberofimages; i++){
+        do {
+            FD_ZERO(&framedataset);
+            FD_SET(fd, &framedataset);
+
+            timevalue.tv_sec = 2;
+            timevalue.tv_usec = 0;
+
+            r = select(fd + 1, &framedataset, NULL, NULL, &timevalue);
+        } while ((r == -1 && (errno = EINTR)));
+        if(r == -1){
+            printf("CAPTURE ERROR: Framedata could not be selected\n");
+            return errno;
+        }
+
+        CLEAR(vidbuffer);
+        vidbuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        vidbuffer.memory = V4L2_MEMORY_MMAP;
+        camctrl(fd, VIDIOC_DQBUF, &vidbuffer);
+
+        sprintf(jpegname, "image%03d.jpeg", i);
+        fout = fopen(jpegname, "w");
+        if(!fout) {
+            printf("OUTPUT ERROR: Cannot create jpeg\n");
+            exit(EXIT_FAILURE);
+        }
+        fprintf(fout, "P6\n%d %d 255\n",format.fmt.pix.width, format.fmt.pix.height);
+        fwrite(buffers[vidbuffer.index].start, vidbuffer.bytesused, 1, fout);
+        fclose(fout);
+
+        camctrl(fd,VIDIOC_QBUF, &vidbuffer);
+    }
+    buffertype = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    camctrl(fd, VIDIOC_STREAMOFF, &buffertype);
+    for(i = 0; i < numberofbuffers; ++i)
+        v4l2_munmap(buffers[i].start, buffers[i].length);
+    v4l2_close(fd);
 }
 
 
