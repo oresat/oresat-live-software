@@ -12,5 +12,5 @@ Usage:
 
     Example:
     ./imagecapture /dev/video1/ 640 480 1 3
-    
-    This will capture 1 image per second for three seconds at 640x480 on video device 1 (a usb webcam, a built in webcam might be video device 0)
+
+This will capture 1 image per second for three seconds at 640x480 on video device 1 (a usb webcam, a built in webcam might be video device 0)
