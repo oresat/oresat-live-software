@@ -2,7 +2,7 @@
 
 Software to interface with the Sony IMX214 USB camera.
 
-Compliation(for now):
+Compliation:
 
     cd build && cmake ..
     make
