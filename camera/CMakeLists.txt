@@ -8,4 +8,4 @@ file(GLOB sources ./*)
 
 
 add_executable(imagecapture ${sources})
-set(CMAKE_CXX_LINK_FLAGS "-lv4l1 -lv4l2")
+target_link_libraries(imagecapture v4l1 v4l2)

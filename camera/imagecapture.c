@@ -5,7 +5,7 @@
 *  It will output jpeg images corresponding to the input setting
 *
 *  NOTES:
-    Uses v4l2, jpeglib for image processing and conversion
+    Uses v4l2 camera API
 */
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
@@ -37,6 +37,20 @@ struct capbuffer{
     size_t length;
 };
 
+
+//camctrl
+/*
+*  DESCRIPTION: Helper function to the camera API be talked to
+*
+*  ARGUMENTS
+*   int fh: value to check camera device
+*   int request: the request to be performed by camera api
+*   void *arg: extra arg used dependent on request
+*
+*  RETURNS
+*
+*    void
+*/
 static void camctrl(int fh, int request, void *arg){
 
     int returnvalue;
@@ -51,9 +65,6 @@ static void camctrl(int fh, int request, void *arg){
     }
 
 }
-
-
-
 
 //checkinput
 /*
@@ -78,13 +89,23 @@ int checkinput(char * device, char * width, char *height, char*fps, char *captur
     int is_valid = 1;
     float ratiohelper = 4.0/3.0;
 
-    //Convert input strings to int/floats
-    //TODO: validate atoi/atof
-    float widthint = atof(width);
-    float heightint = atof(height);
-    int fpsint = atoi(fps);
-    int captureint = atoi(capture_duration);
 
+    //Convert input strings to int/floats
+    float widthint = 0;
+    float heightint = 0;
+    int fpsint = 0;
+    int captureint = 0;
+    if(width != NULL && height != NULL && fps != NULL && capture_duration != NULL){
+        widthint = atof(width);
+        heightint = atof(height);
+        fpsint = atoi(fps);
+        captureint = atoi(capture_duration);
+    }
+    else{
+        printf("INPUT ERROR: Some input was NULL");
+        exit(EXIT_FAILURE);
+    }
+    
     //Calculate aspect ratio from width and height
     float ratio = widthint / heightint;
 
@@ -129,23 +150,35 @@ int checkinput(char * device, char * width, char *height, char*fps, char *captur
     }
 }
 
-//TODO: Comments, error checking
+//TODO: Comments, error checking, implement fps
 int main(int argc, char *argv[]){
+
+    //capture cli
+
+    for (int i = 0; i < 6; ++i){
+        char * temp = argv[i];
+        if(temp == NULL){
+            printf("INPUT ERROR: Missing CL field or field was NULL");
+            exit(EXIT_FAILURE);
+        }
+    
+    }
+    
     device = argv[1];
     width = argv[2];
     height = argv[3];
     fps = argv[4];
     capture_duration = argv[5];
 
-    int numberofimages = 0;
+    //fps place holder value (just final # of images for now)
+    unsigned int numberofimages = 0;
 
-
-    
+    //validate inputs, exit if invalid
     if(!checkinput(device,width,height,fps,capture_duration)){
         printf("Input invalid! See error output\n");
         exit(EXIT_FAILURE);
     }
-
+    //Calculate final total
     if(fps != NULL && capture_duration != NULL){
         int f = atoi(fps);
         int cd = atoi(capture_duration);
@@ -154,6 +187,7 @@ int main(int argc, char *argv[]){
         
     }
 
+    //declare v4l2 variables
     struct v4l2_format format;
     struct v4l2_buffer vidbuffer;
     struct v4l2_requestbuffers request;
@@ -167,11 +201,14 @@ int main(int argc, char *argv[]){
     FILE *fout;
     struct capbuffer *buffers;
 
+    //open video device, exit if device can't be opened
     fd = v4l2_open(device, O_RDWR | O_NONBLOCK,0);
     if(fd < 0){
         printf("CAMERA ERROR: Video device cannot be opened\n");
         exit(EXIT_FAILURE);
     }
+
+    //Set up v4l format fields for when image capture begins
     CLEAR(format);
     format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     format.fmt.pix.width = atoi(width);
@@ -180,12 +217,14 @@ int main(int argc, char *argv[]){
     format.fmt.pix.field = V4L2_FIELD_INTERLACED;
     camctrl(fd, VIDIOC_S_FMT, &format);
     
+    //Request Buffers from camera api
     CLEAR(request);
     request.count = 2;
     request.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     request.memory = V4L2_MEMORY_MMAP;
     camctrl(fd, VIDIOC_REQBUFS, &request);
 
+    //Set up buffers and memory maps
     buffers = calloc(request.count, sizeof(*buffers));
     for(numberofbuffers = 0; numberofbuffers < request.count; ++numberofbuffers){
         CLEAR(vidbuffer);
@@ -211,8 +250,10 @@ int main(int argc, char *argv[]){
         camctrl(fd, VIDIOC_QBUF, &vidbuffer);
     }
     buffertype = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
+    //Image capture begin
     camctrl(fd, VIDIOC_STREAMON, &buffertype);
+
+    //Get camera frames and put them into fds
     for(i = 0; i < numberofimages; i++){
         do {
             FD_ZERO(&framedataset);
@@ -227,18 +268,20 @@ int main(int argc, char *argv[]){
             printf("CAPTURE ERROR: Framedata could not be selected\n");
             return errno;
         }
-
+        //Fill buffer with frame data
         CLEAR(vidbuffer);
         vidbuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         vidbuffer.memory = V4L2_MEMORY_MMAP;
         camctrl(fd, VIDIOC_DQBUF, &vidbuffer);
 
+        //Prepare jpeg outputs
         sprintf(jpegname, "image%03d.jpeg", i);
         fout = fopen(jpegname, "w");
         if(!fout) {
             printf("OUTPUT ERROR: Cannot create jpeg\n");
             exit(EXIT_FAILURE);
         }
+        //Fill jpeg files with frame data
         fprintf(fout, "P6\n%d %d 255\n",format.fmt.pix.width, format.fmt.pix.height);
         fwrite(buffers[vidbuffer.index].start, vidbuffer.bytesused, 1, fout);
         fclose(fout);
@@ -247,6 +290,7 @@ int main(int argc, char *argv[]){
     }
     buffertype = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     camctrl(fd, VIDIOC_STREAMOFF, &buffertype);
+    //Image capture ends, buffers are unmapped
     for(i = 0; i < numberofbuffers; ++i)
         v4l2_munmap(buffers[i].start, buffers[i].length);
     v4l2_close(fd);

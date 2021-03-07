@@ -4,7 +4,8 @@ Software to interface with the Sony IMX214 USB camera.
 
 Compliation(for now):
 
-    gcc -o imagecapture imagecapture.c -lv4l1 -lv4l2
+    cd build && cmake ..
+    make
 
 Usage:
 
