@@ -83,7 +83,7 @@ static void camctrl(int fh, int request, void *arg){
 *    int: 1 or 0 depending on if inputs are all verified.
 */
 
-int checkinput(char * device, char * width, char *height, char*fps, char *capture_duration);
+//int checkinput(char * device, char * width, char *height, char*fps, char *capture_duration);
 int checkinput(char * device, char * width, char *height, char*fps, char *capture_duration){
 
     int is_valid = 1;
@@ -282,6 +282,7 @@ int main(int argc, char *argv[]){
             exit(EXIT_FAILURE);
         }
         //Fill jpeg files with frame data
+        //Placeholder Jpeg header data
         fprintf(fout, "P6\n%d %d 255\n",format.fmt.pix.width, format.fmt.pix.height);
         fwrite(buffers[vidbuffer.index].start, vidbuffer.bytesused, 1, fout);
         fclose(fout);
