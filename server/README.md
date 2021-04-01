@@ -3,11 +3,11 @@
 
 This software is made to run a web server on a Raspberry Pi Zero W displaying the OreSat Live video stream.
 
-We have two things so far: The Raspberry Pi Zero W access point, and an HTML page that has "Hello World" displayed. This is the breakdown.
+We have two things so far: The Raspberry Pi Zero W access point, and a JavaScript page that has "Hello World" displayed. This is the breakdown.
 
 ---
 
-###How to Build an Access Point on a Raspberry Pi Zero W
+### How to Build an Access Point on a Raspberry Pi Zero W
 
 The following steps will tell you how to build an access point on a Raspberry Pi Zero W. __This is subject to change if the script ends up
 working.__
@@ -38,7 +38,7 @@ the following:
 net.ipv4.ip_forward=1
 ```
 7. Save and quit the file
-8. Run the folliowing command in the terminal of your Raspberry Pi:
+8. Run the folliowing commands in the terminal of your Raspberry Pi:
     1. `sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE`
     2. `sudo netfilter-persistent save`
 
@@ -46,7 +46,7 @@ net.ipv4.ip_forward=1
 
 ### Description of files so far:
 
-* index.html: 
+* index.js: 
 * package.json: 
 
 ---
