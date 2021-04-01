@@ -9,8 +9,8 @@ We have two things so far: The Raspberry Pi Zero W access point, and a JavaScrip
 
 ### How to Build an Access Point on a Raspberry Pi Zero W
 
-The following steps will tell you how to build an access point on a Raspberry Pi Zero W. __This is subject to change if the script ends up
-working.__
+Instructions adapted from [Raspberry Pi documentation](https://www.raspberrypi.org/documentation/configuration/wireless/access-point-routed.md)
+The following steps will tell you how to build an access point on a Raspberry Pi Zero W. __This may be automated with a script that still needs testing.__
 
 1. Have a Raspberry Pi Zero W with a working OS. This can be Headless or not, the decision is yours.
 2. Take note of the network your Pi is connected to. Raspberry Pi Zero Ws do not have Ethernet ports, so your internet access will have to
@@ -38,9 +38,40 @@ the following:
 net.ipv4.ip_forward=1
 ```
 7. Save and quit the file
-8. Run the folliowing commands in the terminal of your Raspberry Pi:
+8. Run the following commands in the terminal of your Raspberry Pi:
     1. `sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE`
     2. `sudo netfilter-persistent save`
+9. Configure the DHCP and DNS services
+    1. `sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig` to keep the original configuration
+    2. `sudo nano /etc/dnsmasq.conf`. Add the following:
+```
+interface=wlan0
+dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
+domain=wlan
+address=/gw.wlan/192.168.4.1
+```
+10. Ensure WiFi radio is not blocked with `sudo rfkill unblock wlan`
+11. Configure the access point by `sudo nano /etc/hostapd/hostapd.conf`
+    and Add the following: _Note that this assumes a wifi access point named "pi" with the password "oresat" in the US._
+```
+country_code=US
+interface=wlan0
+hw_mode=g
+channel=7
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wpa=2
+ssid=pi
+wpa_passphrase=oresat
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP
+rsn_pairwise=CCMP
+```
+12. Finally, run your access point with `sudo systemctl reboot`.
+
+Once all the steps are finished, you should be able to access the Raspberry Pi's network through another device like a smartphone, laptop, or tablet. Keep in mind the networks name and password as declared in step 11. 
+
 
 ---
 
@@ -57,4 +88,4 @@ net.ipv4.ip_forward=1
 - [x] Build Server hosted on said access point
 - [ ] Set up a captive portal for the access point
 - [ ] Create a video player to run the video from the satellite
-- [ ] Make it pretty
+- [ ] Make it look nice :)
