@@ -171,7 +171,7 @@ int main(int argc, char *argv[]){
     capture_duration = argv[5];
 
     //fps place holder value (just final # of images for now)
-    unsigned int numberofimages = 0;
+    float numberofimages = 0;
 
     //validate inputs, exit if invalid
     if(!checkinput(device,width,height,fps,capture_duration)){
@@ -254,7 +254,12 @@ int main(int argc, char *argv[]){
     camctrl(fd, VIDIOC_STREAMON, &buffertype);
 
     //Get camera frames and put them into fds
+    float timefrac = (float) 1/atoi(fps);
+    timefrac = timefrac * 1000000;
+    int usecstosleep = (int)timefrac;
+    printf("timefrac: %f, usecs: %d", numberofimages, usecstosleep);
     for(i = 0; i < numberofimages; i++){
+        
         do {
             FD_ZERO(&framedataset);
             FD_SET(fd, &framedataset);
@@ -275,19 +280,20 @@ int main(int argc, char *argv[]){
         camctrl(fd, VIDIOC_DQBUF, &vidbuffer);
 
         //Prepare jpeg outputs
-        sprintf(jpegname, "image%03d.jpeg", i);
+        sprintf(jpegname, "image%03d.ppm", i);
         fout = fopen(jpegname, "w");
         if(!fout) {
             printf("OUTPUT ERROR: Cannot create jpeg\n");
             exit(EXIT_FAILURE);
         }
         //Fill jpeg files with frame data
-        //Placeholder Jpeg header data
         fprintf(fout, "P6\n%d %d 255\n",format.fmt.pix.width, format.fmt.pix.height);
         fwrite(buffers[vidbuffer.index].start, vidbuffer.bytesused, 1, fout);
         fclose(fout);
 
         camctrl(fd,VIDIOC_QBUF, &vidbuffer);
+        printf("usecs: %d", usecstosleep);
+        usleep(usecstosleep);
     }
     buffertype = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     camctrl(fd, VIDIOC_STREAMOFF, &buffertype);
