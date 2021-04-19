@@ -3,9 +3,12 @@
 Software to interface with the Sony IMX214 USB camera.
 
 Compliation:
-    mkdir build (if build directory doesn't exist)
+
+    mkdir build 
+    
     cd build && cmake ..
-    make (when in build directory)
+    
+    make 
 
 Usage:
 
