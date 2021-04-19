@@ -253,11 +253,11 @@ int main(int argc, char *argv[]){
     //Image capture begin
     camctrl(fd, VIDIOC_STREAMON, &buffertype);
 
-    //Get camera frames and put them into fds
+    //Capture images here, first calculate the time to sleep for proxy fps value.
     float timefrac = (float) 1/atoi(fps);
     timefrac = timefrac * 1000000;
     int usecstosleep = (int)timefrac;
-    printf("timefrac: %f, usecs: %d", numberofimages, usecstosleep);
+    //printf("timefrac: %f, usecs: %d", numberofimages, usecstosleep);
     for(i = 0; i < numberofimages; i++){
         
         do {
@@ -292,7 +292,7 @@ int main(int argc, char *argv[]){
         fclose(fout);
 
         camctrl(fd,VIDIOC_QBUF, &vidbuffer);
-        printf("usecs: %d", usecstosleep);
+        //printf("usecs: %d", usecstosleep);
         usleep(usecstosleep);
     }
     buffertype = V4L2_BUF_TYPE_VIDEO_CAPTURE;
