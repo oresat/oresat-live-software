@@ -2,7 +2,7 @@
 *  imagecapture.c
 *
 *  This program will take in the video device, res, fps, and capture duration
-*  It will output jpeg images corresponding to the input setting
+*  It will output raw frames of images corresponding to the input setting that will be converted later into jpegs
 *
 *  NOTES:
     Uses v4l2 camera API
@@ -110,10 +110,16 @@ int checkinput(char * device, char * width, char *height, char*fps, char *captur
     float ratio = widthint / heightint;
 
     //Check if the video device has the right name
-    if(strcmp(device, "/dev/video1") != 0){
-        printf("INPUT ERROR: This is probably the wrong video device(unless you're testing)\n");
-        is_valid = 0;
+    if(strcmp(device, "/dev/video0") != 0){
+        if(strcmp(device, "/dev/video1") == 0){
+        is_valid = 1;
     }
+        else{
+           printf("INPUT ERROR: This is probably the wrong video device(unless you're testing)\n");
+            is_valid = 0;
+        }
+    }
+
     //Check if the width is within limits of the camera resolution(until we know limits of dxwifi)
     if(widthint < 160 || widthint > 4160 ){
         printf("INPUT ERROR: Width is too large or too small\n");
@@ -150,7 +156,7 @@ int checkinput(char * device, char * width, char *height, char*fps, char *captur
     }
 }
 
-//TODO: Comments, error checking, implement fps
+//TODO: error checking
 int main(int argc, char *argv[]){
 
     //capture cli
@@ -170,8 +176,8 @@ int main(int argc, char *argv[]){
     fps = argv[4];
     capture_duration = argv[5];
 
-    //fps place holder value (just final # of images for now)
-    unsigned int numberofimages = 0;
+    
+    float numberofimages = 0;
 
     //validate inputs, exit if invalid
     if(!checkinput(device,width,height,fps,capture_duration)){
@@ -197,7 +203,7 @@ int main(int argc, char *argv[]){
     int r;
     int fd = -1;
     unsigned int i, numberofbuffers;
-    char jpegname[256];
+    char ppmname[256];
     FILE *fout;
     struct capbuffer *buffers;
 
@@ -253,8 +259,12 @@ int main(int argc, char *argv[]){
     //Image capture begin
     camctrl(fd, VIDIOC_STREAMON, &buffertype);
 
-    //Get camera frames and put them into fds
+    //Capture images here, first calculate the time to sleep for proxy fps value.
+    float timefrac = (float) 1/atoi(fps);
+    timefrac = timefrac * 1000000;
+    int usecstosleep = (int)timefrac;
     for(i = 0; i < numberofimages; i++){
+        
         do {
             FD_ZERO(&framedataset);
             FD_SET(fd, &framedataset);
@@ -274,20 +284,20 @@ int main(int argc, char *argv[]){
         vidbuffer.memory = V4L2_MEMORY_MMAP;
         camctrl(fd, VIDIOC_DQBUF, &vidbuffer);
 
-        //Prepare jpeg outputs
-        sprintf(jpegname, "image%03d.jpeg", i);
-        fout = fopen(jpegname, "w");
+        //Prepare ppm outputs
+        sprintf(ppmname, "image%03d.ppm", i);
+        fout = fopen(ppmname, "w");
         if(!fout) {
-            printf("OUTPUT ERROR: Cannot create jpeg\n");
+            printf("OUTPUT ERROR: Cannot create ppm\n");
             exit(EXIT_FAILURE);
         }
-        //Fill jpeg files with frame data
-        //Placeholder Jpeg header data
+        //Fill ppm files with frame data
         fprintf(fout, "P6\n%d %d 255\n",format.fmt.pix.width, format.fmt.pix.height);
         fwrite(buffers[vidbuffer.index].start, vidbuffer.bytesused, 1, fout);
         fclose(fout);
 
         camctrl(fd,VIDIOC_QBUF, &vidbuffer);
+        usleep(usecstosleep);
     }
     buffertype = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     camctrl(fd, VIDIOC_STREAMOFF, &buffertype);
