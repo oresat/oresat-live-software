@@ -2,7 +2,7 @@
 *  imagecapture.c
 *
 *  This program will take in the video device, res, fps, and capture duration
-*  It will output jpeg images corresponding to the input setting
+*  It will output raw frames of images corresponding to the input setting that will be converted later into jpegs
 *
 *  NOTES:
     Uses v4l2 camera API
@@ -156,7 +156,7 @@ int checkinput(char * device, char * width, char *height, char*fps, char *captur
     }
 }
 
-//TODO: Comments, error checking, implement fps
+//TODO: error checking
 int main(int argc, char *argv[]){
 
     //capture cli
@@ -176,7 +176,7 @@ int main(int argc, char *argv[]){
     fps = argv[4];
     capture_duration = argv[5];
 
-    //fps place holder value (just final # of images for now)
+    
     float numberofimages = 0;
 
     //validate inputs, exit if invalid
@@ -203,7 +203,7 @@ int main(int argc, char *argv[]){
     int r;
     int fd = -1;
     unsigned int i, numberofbuffers;
-    char jpegname[256];
+    char ppmname[256];
     FILE *fout;
     struct capbuffer *buffers;
 
@@ -263,7 +263,6 @@ int main(int argc, char *argv[]){
     float timefrac = (float) 1/atoi(fps);
     timefrac = timefrac * 1000000;
     int usecstosleep = (int)timefrac;
-    //printf("timefrac: %f, usecs: %d", numberofimages, usecstosleep);
     for(i = 0; i < numberofimages; i++){
         
         do {
@@ -285,20 +284,19 @@ int main(int argc, char *argv[]){
         vidbuffer.memory = V4L2_MEMORY_MMAP;
         camctrl(fd, VIDIOC_DQBUF, &vidbuffer);
 
-        //Prepare jpeg outputs
-        sprintf(jpegname, "image%03d.ppm", i);
-        fout = fopen(jpegname, "w");
+        //Prepare ppm outputs
+        sprintf(ppmname, "image%03d.ppm", i);
+        fout = fopen(ppmname, "w");
         if(!fout) {
-            printf("OUTPUT ERROR: Cannot create jpeg\n");
+            printf("OUTPUT ERROR: Cannot create ppm\n");
             exit(EXIT_FAILURE);
         }
-        //Fill jpeg files with frame data
+        //Fill ppm files with frame data
         fprintf(fout, "P6\n%d %d 255\n",format.fmt.pix.width, format.fmt.pix.height);
         fwrite(buffers[vidbuffer.index].start, vidbuffer.bytesused, 1, fout);
         fclose(fout);
 
         camctrl(fd,VIDIOC_QBUF, &vidbuffer);
-        //printf("usecs: %d", usecstosleep);
         usleep(usecstosleep);
     }
     buffertype = V4L2_BUF_TYPE_VIDEO_CAPTURE;
