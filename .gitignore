@@ -11,6 +11,7 @@
 *.a
 *.so
 *.so.*
+*/node_modules
 
 # Build Output
 */bin/*
