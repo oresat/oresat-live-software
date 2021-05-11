@@ -9,15 +9,48 @@
 *  later.
 */
 
+const fs = require('fs');
 const app = require('express')();
 const http = require('http').createServer(app);
 //as of right now, 0.0.0.0 is the only IP address that works
 const host = '0.0.0.0'
 const port = 80;
 
+const videoPath = "testimages/";
+
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html')
 });
+
+app.get('/video', function (req, res) {
+    const VIDEO_REGEX = '\w+.mp4';
+    var videos = null;
+     
+    var dir = fs.readdir(videoPath, options = {"withFileTypes": true}, function (err, data)  {
+        if (err) { console.log('error', err); }
+
+        for (const file of data) {
+            if (!file.isFile()) {
+                continue;
+            }
+            if (!file.name.search(VIDEO_REGEX)) {
+                continue;
+            }
+
+            let stat = fs.stat(videoPath + file.name, function (err, stats) {
+                if (err) { console.log('error', err); }
+
+                var mtime = stats.mtime;
+                console.log(videoPath + file.name, mtime); 
+            });
+        }       
+        
+        // return the video in res or req ?
+    });
+
+});
+
+
 
 /*
 *  FUNCTION: server
