@@ -10,25 +10,34 @@
 */
 
 const fs = require('fs');
-const app = require('express')();
+const express = require('express');
+const app = express();
 const http = require('http').createServer(app);
 //as of right now, 0.0.0.0 is the only IP address that works
-const host = '0.0.0.0'
+const host = '0.0.0.0'; //'192.168.1.164'
 const port = 80;
 
-const videoPath = "testimages/";
+const videoPath = "public/testimages/";
+
+app.use(express.static(__dirname + '/public'));
 
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html')
 });
 
 app.get('/video', function (req, res) {
-    const VIDEO_REGEX = '\w+.mp4';
+    const VIDEO_REGEX = '\w+.mov';
     var videos = null;
-     
-    var dir = fs.readdir(videoPath, options = {"withFileTypes": true}, function (err, data)  {
+    
+    var dir = fs.readdir(videoPath, options = {"withFileTypes": true}, (err, data) => {
         if (err) { console.log('error', err); }
 
+        res.statusCode = 200;
+        // TODO: Practice sending this .mov (or link to it)
+        res.send('/public/four.mov');
+
+        // TODO: After successfully sending mov link, return to /public/testimages
+
+        /* TODO: Find out the last modified date of the files.
         for (const file of data) {
             if (!file.isFile()) {
                 continue;
@@ -37,17 +46,16 @@ app.get('/video', function (req, res) {
                 continue;
             }
 
-            let stat = fs.stat(videoPath + file.name, function (err, stats) {
-                if (err) { console.log('error', err); }
+            let stat = fs.stat(videoPath + file.name, function (stat_err, stats) {
+                if (stat_err) { console.log('error', stat_err); }
 
                 var mtime = stats.mtime;
                 console.log(videoPath + file.name, mtime); 
             });
-        }       
+        }      
+        */ 
         
-        // return the video in res or req ?
     });
-
 });
 
 
