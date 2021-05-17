@@ -33,11 +33,12 @@ app.get('/video', function (req, res) {
 
         res.statusCode = 200;
         // TODO: Practice sending this .mov (or link to it)
-        res.send('/four.mov'); //SUCCESS
+        //going to comment this out for now for testing purposes
+        //res.send('/four.mov'); //SUCCESS
 
         // TODO: After successfully sending mov link, return to /public/testimages
 
-        /* TODO: Find out the last modified date of the files.
+        // TODO: Find out the last modified date of the files.
         for (const file of data) {
             if (!file.isFile()) {
                 continue;
@@ -53,7 +54,7 @@ app.get('/video', function (req, res) {
                 console.log(videoPath + file.name, mtime); 
             });
         }      
-        */ 
+        
         
     });
 });
