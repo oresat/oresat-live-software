@@ -18,6 +18,7 @@ const host = '0.0.0.0'; //'192.168.1.164'
 const port = 80;
 
 const videoPath = "public/testimages/";
+var videoQueue = [];
 
 app.use(express.static(__dirname + '/public'));
 
@@ -39,6 +40,7 @@ app.get('/video', function (req, res) {
         // TODO: After successfully sending mov link, return to /public/testimages
 
         // TODO: Find out the last modified date of the files.
+        
         for (const file of data) {
             if (!file.isFile()) {
                 continue;
@@ -52,9 +54,9 @@ app.get('/video', function (req, res) {
 
                 var mtime = stats.mtime;
                 console.log(videoPath + file.name, mtime); 
+                
             });
-        }      
-        
+        }
         
     });
 });

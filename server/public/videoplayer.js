@@ -51,3 +51,4 @@ function initVideo(video)
         video.next.play()
     }
 }
+
