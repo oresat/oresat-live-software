@@ -22,8 +22,19 @@ Usage:
 
 This will capture 1 image per second for three seconds at 640x480 on video device 1 (a usb webcam, a built in webcam might be video device 0)
 
-Dependancies:
 
- v4l-utils
- libv4l-dev
- cmake
+To use the program on a BeagleBone/fresh system you'll need the following dependancies:
+
+    v4l-utils
+    libv4l-dev
+    cmake
+
+To install:
+
+    sudo apt install v4l-utils
+    sudo apt install libv4l-dev
+    sudo apt install cmake
+
+TO USE INTEGRATED ENCODING SCRIPT:
+    
+    ...
