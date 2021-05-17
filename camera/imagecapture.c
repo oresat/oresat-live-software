@@ -110,7 +110,7 @@ int checkinput(char * device, char * width, char *height, char*fps, char *captur
     float ratio = widthint / heightint;
 
     //Check if the video device has the right name
-    if(strcmp(device, "/dev/video0") != 0){
+    /*if(strcmp(device, "/dev/video0") != 0){
         if(strcmp(device, "/dev/video1") == 0){
         is_valid = 1;
     }
@@ -118,7 +118,7 @@ int checkinput(char * device, char * width, char *height, char*fps, char *captur
            printf("INPUT ERROR: This is probably the wrong video device(unless you're testing)\n");
             is_valid = 0;
         }
-    }
+    }*/
 
     //Check if the width is within limits of the camera resolution(until we know limits of dxwifi)
     if(widthint < 160 || widthint > 4160 ){
@@ -285,7 +285,7 @@ int main(int argc, char *argv[]){
         camctrl(fd, VIDIOC_DQBUF, &vidbuffer);
 
         //Prepare ppm outputs
-        sprintf(ppmname, "image%03d.ppm", i);
+        sprintf(ppmname, "data/encode_img/image%03d.ppm", i);
         fout = fopen(ppmname, "w");
         if(!fout) {
             printf("OUTPUT ERROR: Cannot create ppm\n");
