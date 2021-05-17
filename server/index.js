@@ -33,7 +33,7 @@ app.get('/video', function (req, res) {
 
         res.statusCode = 200;
         // TODO: Practice sending this .mov (or link to it)
-        res.send('/public/four.mov');
+        res.send('/four.mov'); //SUCCESS
 
         // TODO: After successfully sending mov link, return to /public/testimages
 
