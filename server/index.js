@@ -18,7 +18,8 @@ const host = '0.0.0.0'; //'192.168.1.164'
 const port = 80;
 
 const videoPath = "public/testimages/";
-var videoQueue = [];
+global.lastModified = 0;
+global.attempts = 0;
 
 app.use(express.static(__dirname + '/public'));
 
@@ -26,38 +27,57 @@ app.get('/', (req, res) => {
 });
 
 app.get('/video', function (req, res) {
+    // Only select files in video format.
     const VIDEO_REGEX = '\w+.mov';
-    var videos = null;
     
     var dir = fs.readdir(videoPath, options = {"withFileTypes": true}, (err, data) => {
         if (err) { console.log('error', err); }
 
         res.statusCode = 200;
-        // TODO: Practice sending this .mov (or link to it)
-        //going to comment this out for now for testing purposes
-        //res.send('/four.mov'); //SUCCESS
 
-        // TODO: After successfully sending mov link, return to /public/testimages
-
-        // TODO: Find out the last modified date of the files.
+        var currentFile = null;
+        var nextTime = null;
+        var nextFile = null;
         
         for (const file of data) {
-            if (!file.isFile()) {
-                continue;
-            }
-            if (!file.name.search(VIDEO_REGEX)) {
+            // Check if the file is a file & and if it ends in the REGEX ending
+            if (!file.isFile() || !file.name.search(VIDEO_REGEX)) {
                 continue;
             }
 
             let stat = fs.stat(videoPath + file.name, function (stat_err, stats) {
                 if (stat_err) { console.log('error', stat_err); }
-
                 var mtime = stats.mtime;
-                console.log(videoPath + file.name, mtime); 
-                
+
+                if (mtime > global.lastModified && (!nextTime || mtime < nextTime)) {
+                    nextTime = mtime;
+                    nextFile = file.name;
+                    console.log("Found a sooner file:" + file.name);
+                }
+                else if (mtime == global.lastModified) {
+                    currentFile = file.name;
+                    console.log("Found the already playing file.");
+                }
             });
+
+            console.log(file.name, mtime);
+        }
+
+        console.log("DEBUGGING: (currentFile, newTime, nextFile) " + currentFile + nextTime + nextFile);
+
+        if (!nextTime) {
+            global.attempts += 1;
+            nextFile = currentFile;
+        }
+        else {
+            global.attempts = 0;
+            global.lastModified = nextTime;
+        }
+        if (global.attempts > 10) {
+            nextFile = 'four.mov'; // TODO: Replace with some 'error' message.
         }
         
+        res.send('/' + nextFile);
     });
 });
 
