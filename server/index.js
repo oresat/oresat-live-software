@@ -33,8 +33,6 @@ app.get('/video', function (req, res) {
     var dir = fs.readdir(videoPath, options = {"withFileTypes": true}, (err, data) => {
         if (err) { console.log('error', err); }
 
-        res.statusCode = 200;
-
         var currentFile = null;
         var nextTime = null;
         var nextFile = null;
@@ -45,20 +43,17 @@ app.get('/video', function (req, res) {
                 continue;
             }
 
-            let stat = fs.stat(videoPath + file.name, function (stat_err, stats) {
-                if (stat_err) { console.log('error', stat_err); }
-                var mtime = stats.mtime;
+            let mtime = fs.statSync(videoPath + file.name).mtime;
 
-                if (mtime > global.lastModified && (!nextTime || mtime < nextTime)) {
-                    nextTime = mtime;
-                    nextFile = file.name;
-                    console.log("Found a sooner file:" + file.name);
-                }
-                else if (mtime == global.lastModified) {
-                    currentFile = file.name;
-                    console.log("Found the already playing file.");
-                }
-            });
+            if (mtime > global.lastModified && (!nextTime || mtime < nextTime)) {
+                nextTime = mtime;
+                nextFile = file.name;
+                console.log("Found a sooner file:" + file.name);
+            }
+            else if (mtime == global.lastModified) {
+                currentFile = file.name;
+                console.log("Found the already playing file.");
+            }
 
             console.log(file.name, mtime);
         }
@@ -77,7 +72,8 @@ app.get('/video', function (req, res) {
             nextFile = 'four.mov'; // TODO: Replace with some 'error' message.
         }
         
-        res.send('/' + nextFile);
+        res.statusCode = 200;
+        res.send('testimages/' + nextFile);
     });
 });
 
