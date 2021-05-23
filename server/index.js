@@ -34,7 +34,6 @@ app.get('/video', function (req, res) {
     var dir = fs.readdir(videoPath, options = {"withFileTypes": true}, (err, data) => {
         if (err) { console.log('error', err); }
 
-
         var nextTime = null;
         var nextFile = null;
         
@@ -46,20 +45,14 @@ app.get('/video', function (req, res) {
 
             let birthtime = fs.statSync(videoPath + file.name).birthtimeMs;
 
-            console.log(file.name + birthtime);
-            console.log("HEY LAST MODIFIED IS " + global.lastModified + " AND " + birthtime);
-
             if (birthtime > global.lastModified && (!nextTime || birthtime < nextTime)) {
                 nextTime = birthtime;
                 nextFile = file.name;
             }
             else if (birthtime === global.lastModified) {
                 global.currentFile = file.name;
-                console.log("Found the already playing file.");
-                console.log(global.currentFile);
             }
         }
-
 
         if (!nextTime) {
             global.attempts += 1;
@@ -69,16 +62,14 @@ app.get('/video', function (req, res) {
             global.attempts = 0;
             global.lastModified = nextTime;
         }
-        if (global.attempts > 10) {
-            nextFile = 'four.mov'; // TODO: Replace with some 'error' message.
-        }
-        console.log("DEBUGGING: (currentFile, nextFile) " + global.currentFile + nextFile);
-        
+
         res.statusCode = 200;
+        if (global.attempts > 10) {
+            res.send('/four.mov'); // TODO: Replace with some 'error' message.
+        }        
         res.send('testimages/' + nextFile);
     });
 });
-
 
 
 /*
