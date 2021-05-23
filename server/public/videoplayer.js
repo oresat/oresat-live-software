@@ -22,15 +22,13 @@ lastModified =  0;
 
 function getNextVideo()
 {
-    console.log('hey'); // TODO: remove after debug
     var response = $.ajax({
         type: 'get',
         contentType: 'Content-Disposition',
         url: '/video',
         async: false // Deprecated - Is there a better way to handle?
     }).responseText;
-    console.log(response); // TODO: Remove after debug.
-    return response; // TODO: Does this return a URL string? How can we 'load' it?
+    return response;
 }
 
 function initVideo(video)

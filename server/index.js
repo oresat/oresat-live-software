@@ -29,48 +29,46 @@ app.get('/', (req, res) => {
 
 app.get('/video', function (req, res) {
     // Only select files in video format.
-    const VIDEO_REGEX = '\w+.mov';
+    const VIDEO_REGEX = /\w+.mov/;
     
-    var dir = fs.readdir(videoPath, options = {"withFileTypes": true}, (err, data) => {
-        if (err) { console.log('error', err); }
-
-        var nextTime = null;
-        var nextFile = null;
-        
-        for (const file of data) {
-            // Check if the file is a file & and if it ends in the REGEX ending
-            if (!file.isFile() || !file.name.search(VIDEO_REGEX)) {
-                continue;
-            }
-
-            let birthtime = fs.statSync(videoPath + file.name).birthtimeMs;
-
-            if (birthtime > global.lastModified && (!nextTime || birthtime < nextTime)) {
-                nextTime = birthtime;
-                nextFile = file.name;
-            }
-            else if (birthtime === global.lastModified) {
-                global.currentFile = file.name;
-            }
+    let dir = fs.readdirSync(videoPath, options = {"withFileTypes": true});
+    var nextTime = null;
+    var nextFile = null;
+    
+    for (const file of dir) {
+        // Check if the file is a file & and if it ends in the REGEX ending
+        if (!file.isFile() || file.name.search(VIDEO_REGEX) < 0) {
+            continue;
         }
 
-        if (!nextTime) {
-            global.attempts += 1;
-            nextFile = global.currentFile;
-        }
-        else {
-            global.attempts = 0;
-            global.lastModified = nextTime;
-        }
+        let birthtime = fs.statSync(videoPath + file.name).birthtimeMs;
 
-        res.statusCode = 200;
-        if (global.attempts > 10) {
-            res.send('/four.mov'); // TODO: Replace with some 'error' message.
-        }        
+        if (birthtime > global.lastModified && (!nextTime || birthtime < nextTime)) {
+            nextTime = birthtime;
+            nextFile = file.name;
+        }
+        else if (birthtime === global.lastModified) {
+            global.currentFile = file.name;
+        }
+    }
+
+    if (!nextTime) {
+        global.attempts += 1;
+        nextFile = global.currentFile;
+    }
+    else {
+        global.attempts = 0;
+        global.lastModified = nextTime;
+    }
+
+    res.statusCode = 200;
+    if (global.attempts < 10) {
         res.send('testimages/' + nextFile);
-    });
+    }        
+    else {
+        res.send('happy.mov'); // TODO: Replace with some 'error' message.
+    }  
 });
-
 
 /*
 *  FUNCTION: server
