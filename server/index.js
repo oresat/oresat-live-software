@@ -20,6 +20,7 @@ const port = 80;
 const videoPath = "public/testimages/";
 global.lastModified = 0;
 global.attempts = 0;
+global.currentFile = ""; // TODO: Default with error / starting .mov?
 
 app.use(express.static(__dirname + '/public'));
 
@@ -33,7 +34,7 @@ app.get('/video', function (req, res) {
     var dir = fs.readdir(videoPath, options = {"withFileTypes": true}, (err, data) => {
         if (err) { console.log('error', err); }
 
-        var currentFile = null;
+
         var nextTime = null;
         var nextFile = null;
         
@@ -43,26 +44,26 @@ app.get('/video', function (req, res) {
                 continue;
             }
 
-            let mtime = fs.statSync(videoPath + file.name).mtime;
+            let birthtime = fs.statSync(videoPath + file.name).birthtimeMs;
 
-            if (mtime > global.lastModified && (!nextTime || mtime < nextTime)) {
-                nextTime = mtime;
+            console.log(file.name + birthtime);
+            console.log("HEY LAST MODIFIED IS " + global.lastModified + " AND " + birthtime);
+
+            if (birthtime > global.lastModified && (!nextTime || birthtime < nextTime)) {
+                nextTime = birthtime;
                 nextFile = file.name;
-                console.log("Found a sooner file:" + file.name);
             }
-            else if (mtime == global.lastModified) {
-                currentFile = file.name;
+            else if (birthtime === global.lastModified) {
+                global.currentFile = file.name;
                 console.log("Found the already playing file.");
+                console.log(global.currentFile);
             }
-
-            console.log(file.name, mtime);
         }
 
-        console.log("DEBUGGING: (currentFile, newTime, nextFile) " + currentFile + nextTime + nextFile);
 
         if (!nextTime) {
             global.attempts += 1;
-            nextFile = currentFile;
+            nextFile = global.currentFile;
         }
         else {
             global.attempts = 0;
@@ -71,6 +72,7 @@ app.get('/video', function (req, res) {
         if (global.attempts > 10) {
             nextFile = 'four.mov'; // TODO: Replace with some 'error' message.
         }
+        console.log("DEBUGGING: (currentFile, nextFile) " + global.currentFile + nextFile);
         
         res.statusCode = 200;
         res.send('testimages/' + nextFile);
