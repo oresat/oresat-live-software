@@ -5,6 +5,8 @@ var videoPlayer = document.getElementById('videoplayer');
 
 videoA = document.createElement('video');
 videoB = document.createElement('video');
+formatVideo(videoA);
+formatVideo(videoB);
 
 videoA.next = videoB;
 videoB.next = videoA;
@@ -52,3 +54,10 @@ function initVideo(video)
     }
 }
 
+function formatVideo(id) 
+{
+    id.setAttribute("width", "840");
+    id.setAttribute("height", "600");
+    id.style.cssFloat = "center";
+    id.setAttribute("id", id);
+}

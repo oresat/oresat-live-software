@@ -1,0 +1,26 @@
+body {
+    background-color: #bcf7c6;
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+}
+
+#logo {
+    width: auto;
+    height: auto;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+.header {
+    text-align: center;
+    padding: 25px;
+    color: white;
+    font-size: 20px;
+    background-color: green;
+}
+
