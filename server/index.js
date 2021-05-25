@@ -17,7 +17,7 @@ const http = require('http').createServer(app);
 const host = '0.0.0.0'; //'192.168.1.164'
 const port = 80;
 
-const videoPath = "public/testimages/";
+const videoPath = "testimages/";
 global.lastModified = 0;
 global.attempts = 0;
 global.currentFile = ""; // TODO: Default with error / starting .mov?
@@ -29,9 +29,9 @@ app.get('/', (req, res) => {
 
 app.get('/video', function (req, res) {
     // Only select files in video format.
-    const VIDEO_REGEX = /\w+.mov/;
+    const VIDEO_REGEX = /\w+.mp4/;
     
-    let dir = fs.readdirSync(videoPath, options = {"withFileTypes": true});
+    let dir = fs.readdirSync('public/' + videoPath, options = {"withFileTypes": true});
     var nextTime = null;
     var nextFile = null;
     
@@ -41,7 +41,7 @@ app.get('/video', function (req, res) {
             continue;
         }
 
-        let birthtime = fs.statSync(videoPath + file.name).birthtimeMs;
+        let birthtime = fs.statSync('public/' + videoPath + file.name).birthtimeMs;
 
         if (birthtime > global.lastModified && (!nextTime || birthtime < nextTime)) {
             nextTime = birthtime;
@@ -53,19 +53,26 @@ app.get('/video', function (req, res) {
     }
 
     if (!nextTime) {
+        // Video has not been updated, increment and loop current file.
         global.attempts += 1;
         nextFile = global.currentFile;
     }
     else {
+        // Video has been updated, update timestamp and reset attempts. 
         global.attempts = 0;
         global.lastModified = nextTime;
     }
-
     res.statusCode = 200;
-    if (global.attempts < 10) {
-        res.send('testimages/' + nextFile);
+    if (global.lastModified == 0) {
+        // Waiting for Transmission - No media in directory yet.
+        res.send('wait.mp4');
+    }
+    else if (global.attempts < 10) {
+        // Send valid video.
+        res.send(videoPath + nextFile);
     }        
     else {
+        // Send error video / 'awaiting transmission.'
         res.send('happy.mov'); // TODO: Replace with some 'error' message.
     }  
 });
