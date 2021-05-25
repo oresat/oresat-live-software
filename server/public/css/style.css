@@ -1,19 +1,12 @@
 body {
     background-color: #bcf7c6;
-    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+    font-family: sans-serif;
 }
 
 #logo {
+    float: left;
     width: auto;
     height: auto;
-}
-
-.left {
-    float: left;
-}
-
-.right {
-    float: right;
 }
 
 .header {

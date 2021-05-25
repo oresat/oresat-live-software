@@ -24,13 +24,15 @@ lastModified =  0;
 
 function getNextVideo()
 {
+    console.log('hey'); // TODO: remove after debug
     var response = $.ajax({
         type: 'get',
         contentType: 'Content-Disposition',
         url: '/video',
         async: false // Deprecated - Is there a better way to handle?
     }).responseText;
-    return response;
+    console.log(response); // TODO: Remove after debug.
+    return response; // TODO: Does this return a URL string? How can we 'load' it?
 }
 
 function initVideo(video)
@@ -57,5 +59,5 @@ function formatVideo(id)
     id.setAttribute("width", "840");
     id.setAttribute("height", "600");
     id.style.cssFloat = "center";
-    id.setAttribute("id", id);
+    id.setAttribute("name", "videos");
 }
