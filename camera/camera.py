@@ -1,16 +1,17 @@
 import threading
 import subprocess
 import time
+import sys
   
 # global variable x
 x = 0
   
 def cam_capture():
-	subprocess.call(["build/./imagecapture", "/dev/v4l/by-id/usb-Empia._UVC_Video_Device_12345678901234567890-video-index0", "640", "480", "3", "2"])
+	subprocess.call(["build/./imagecapture", "/dev/v4l/by-id/usb-Empia._UVC_Video_Device_12345678901234567890-video-index0", "640", "480", sys.argv[1], sys.argv[2]])
   
 def encode_vid():
-    filename = "data/videos/outputTest" + str(x) + ".mp4"
-    subprocess.call(["ffmpeg", "-framerate", "3", "-i", "data/encode_img/image%03d.ppm", "-c:v", "libx264", "-b:v", "250k","-preset", "ultrafast", "-loglevel","quiet", "-an", filename])
+    filename = "data/videos/output" + str(x) + ".mp4"
+    subprocess.call(["ffmpeg", "-framerate", sys.argv[3], "-i", "data/encode_img/image%03d.ppm", "-c:v", "libx264", "-b:v", sys.argv[4],"-preset", "ultrafast", "-loglevel","quiet", "-an", filename])
   
 def main():
     # creating threads
