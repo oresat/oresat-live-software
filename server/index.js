@@ -31,6 +31,12 @@ app.get('/video', function (req, res) {
     // Only select files in video format.
     const VIDEO_REGEX = /\w+.mp4/;
     
+    if (global.attempts > 10)
+    {
+        res.send('ended.mp4');
+        return;
+    }
+
     let dir = fs.readdirSync('public/' + videoPath, options = {"withFileTypes": true});
     var nextTime = null;
     var nextFile = null;
@@ -42,7 +48,7 @@ app.get('/video', function (req, res) {
         }
 
         let birthtime = fs.statSync('public/' + videoPath + file.name).birthtimeMs;
-
+        
         if (birthtime > global.lastModified && (!nextTime || birthtime < nextTime)) {
             nextTime = birthtime;
             nextFile = file.name;
@@ -67,13 +73,16 @@ app.get('/video', function (req, res) {
         // Waiting for Transmission - No media in directory yet.
         res.send('wait.mp4');
     }
-    else if (global.attempts < 10) {
+
+    // CHANGE THIS PART IF YOU WANT THE LOOPS TO BE LONGER.
+    else if (global.attempts < 5) {
         // Send valid video.
         res.send(videoPath + nextFile);
     }        
     else {
         // Send error video / 'awaiting transmission.'
-        res.send('happy.mov'); // TODO: Replace with some 'error' message.
+        res.send('interrupt.mp4');
+        global.attempts += 1;
     }  
 });
 
