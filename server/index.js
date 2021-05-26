@@ -18,11 +18,20 @@ const http = require('http').createServer(app);
 const host = '0.0.0.0'; //'192.168.1.164'
 const port = 80;
 
+/* PREMADE VIDEOS */
+const WAIT_VIDEO = "wait.mp4";
+const INTERUPT_VIDEO = "interrupt.mp4";
+const ENDED_VIDEO = "ended.mp4";
+
 // Only select files in video format.
 const videoPath = "testimages/";
 const VIDEO_REGEX = /\w+.mp4/;
+
+
+
+
 global.currentTimestamp = 0;
-global.currentFile = "wait.mp4"; // Set to waiting by default.
+global.currentFile = WAIT_VIDEO; // Set to waiting by default.
 
 app.use(express.static(__dirname + '/public'));
 
@@ -44,14 +53,14 @@ async function startServer() {
     while(arg.attempts < 10) {
         await updateCurrentFile(arg);
     }
-    global.currentFile = 'ended.mp4';
+    global.currentFile = ENDED_VIDEO;
     return;
 }
 
 async function updateCurrentFile(arg) {
     // Transmission has not begun yet.
     if(global.currentTimestamp == 0) {
-        global.currentFile = "wait.mp4";
+        global.currentFile = WAIT_VIDEO;
         arg.attempts = 0; // Keep attempts at 0. 
     }
     
@@ -91,7 +100,7 @@ async function updateCurrentFile(arg) {
         
         // Send 'Interupted' transmission if looping too much.
         if (arg.attempts < 5) {
-            global.currentFile = 'interrupt.mp4';
+            global.currentFile = INTERUPT_VIDEO;
         }  
     } else {
         arg.attempts = 0;
@@ -109,7 +118,7 @@ function getDurationOfVideoMs(filepath) {
     // Reading duration of an mp4 from NodeJS:
     // Adapted from https://gist.github.com/Elements-/cf063254730cd754599e
     var buff = new Buffer.alloc(100);
-    const fd = fs.openSync(__dirname + '/public/testimages/' + 'TEST_ONE.mp4');
+    const fd = fs.openSync(__dirname + '/public/' + filepath);
     fs.readSync(fd, buff);
     var start = buff.indexOf(new Buffer.from('mvhd')) + 17;
     var timeScale = buff.readUInt32BE(start, 4);
