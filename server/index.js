@@ -44,6 +44,8 @@ async function startServer() {
     while(arg.attempts < 10) {
         await updateCurrentFile(arg);
     }
+    global.currentFile = 'ended.mp4';
+    return;
 }
 
 async function updateCurrentFile(arg) {
@@ -55,9 +57,8 @@ async function updateCurrentFile(arg) {
     
     // Transmission has ended, or enough errors have
     // passed through causing an end of transmission.
-    if (arg.attempts > 10)
+    if (arg.attempts >= 10)
     {
-        global.currentFile = 'ended.mp4';
         return;
     }
     
