@@ -9,12 +9,12 @@
 *  later.
 */
 
-const sleep = require('sleep');
 const fs = require('fs');
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
-//as of right now, 0.0.0.0 is the only IP address that works
+
+// Change this to address of the Rasp Pi
 const host = '0.0.0.0'; //'192.168.1.164'
 const port = 80;
 
