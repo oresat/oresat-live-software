@@ -24,7 +24,12 @@ const INTERUPT_VIDEO = "interrupt.mp4";
 const ENDED_VIDEO = "ended.mp4";
 
 // Only select files in video format.
-const videoPath = "testimages/";
+// Terminate if the directory the video files are coming from is not specified.
+if(process.argv.length != 3) {
+    console.log("Please include the directory the video files are coming from");
+    process.exit(1);
+}
+const videoPath = process.argv[2];
 const VIDEO_REGEX = /\w+.mp4/;
 
 
