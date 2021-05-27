@@ -56,8 +56,8 @@ function initVideo(video)
 
 function formatVideo(id) 
 {
-    id.setAttribute("width", "840");
-    id.setAttribute("height", "600");
+    id.setAttribute("width", "100%");
+    id.setAttribute("height", "auto");
     id.style.cssFloat = "center";
     id.setAttribute("name", "videos");
 }
