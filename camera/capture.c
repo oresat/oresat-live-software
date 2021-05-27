@@ -1,5 +1,5 @@
 /*
-*  imagecapture.c
+*  capture.c
 *
 *  This program will take in the video device, res, fps, and capture duration
 *  It will output raw frames of images corresponding to the input setting that will be converted later into jpegs

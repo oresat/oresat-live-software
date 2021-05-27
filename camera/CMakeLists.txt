@@ -3,5 +3,5 @@ project(camera)
 
 file(GLOB sources ./*)
 
-add_executable(imagecapture ${sources})
-target_link_libraries(imagecapture v4l1 v4l2)
+add_executable(capture ${sources})
+target_link_libraries(capture v4l1 v4l2)

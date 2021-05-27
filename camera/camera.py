@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # Set up argument parser
     # TODO: add sanity checks on user input
     parser = argparse.ArgumentParser(description = "Capture and encode low-fps videos.")
-    parser.add_argument("-bin", "--binary", default = "./build/imagecapture",
+    parser.add_argument("-bin", "--binary", default = "./build/capture",
                         help = "Path to imagecapture binary.")
     parser.add_argument("-dev", "--device", default = "/dev/v4l/by-id/usb-Empia._UVC_Video_Device_12345678901234567890-video-index0",
                         help = "Path to video device.")
