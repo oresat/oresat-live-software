@@ -69,7 +69,7 @@ if __name__ == "__main__":
     num_loops = ARGS.total_duration // ARGS.spv
 
     # Make videos
-    for _ in range(num_loops):
+    for i in range(num_loops):
         make_video()
         NUM += 1
-        subprocess.call(["ls", "data/encode_img"])
+        print(f"Finished video {i + 1} of {num_loops}.")

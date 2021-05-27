@@ -1,58 +1,36 @@
-# camera.py
-Script to integrate camera capture and video encoding together.
+# camera
 
-## Requires:
-    Python
-    ffmpeg
-    v4l-utils
-    libv4l-dev
-    cmake
-## Usage:
-    To capture and encode video:
+The software in this folder uses `v4l` and `ffmpeg` to create low-fps videos with H.264 encoding.
 
-    python camera.py <frames to capture per second> <capture duration in seconds> <fps to encode videos> <bit rate for encoding>
+### Dependencies
 
-## Example:
-    python camera.py 3 5 2 250K
+- Python 3
+- `ffmpeg`
+- `v4l-utils`
+- `libv4l-dev`
+- `cmake`
 
-Will capture 3 frames per second for 5 seconds and then feed the frames into ffmpeg to encode video at 3 frames per second at a bit rate of 250,000.
+All of these should be readily available from your package manager. The directories `data/encode_img` and `data/videos` should also be made. *(To-do: detect and create these directories as needed in the script, or better yet make them user-specifiable.)*
 
-Script may need to be modified if camera is not recognized.
+### Compilation
 
+The software depends on building `capture.c`, which actually interface with the camera, as follows.
 
-# imagecapture.c
+```
+mkdir build
+cd build && cmake ..
+make
+```
 
-Software to interface with the Sony IMX214 USB camera.
+This binary can be used on its own if needed.
 
-## Compliation:
+```
+./capture <video device> <width in px> <height in px> <frames per second> <capture duration>
+./capture /dev/video1/ 640 480 1 3
+```
 
-    mkdir build
+### Usage
 
-    cd build && cmake ..
+Everything is coordinated through `camera.py`, which has a command-line interface for controlling parameters. Run `python3 camera.py -h` to see a full list, though most of these are optional. The defaults are set to work with the Sony IMX214 USB camera for OreSat Live.
 
-    make
-
-## Usage:
-
-    To capture raw, uncompressed frames:
-        ./imagecapture <video device> <width in px> <height in px> <frames per second> <capture duration>
-
-    Example:
-    ./imagecapture /dev/video1/ 640 480 1 3
-
-
-
-This will capture 1 image per second for three seconds at 640x480 on video device 1 (a usb webcam, a built in webcam might be video device 0)
-
-
-## To use the program on a BeagleBone/fresh system you'll need the following dependancies:
-
-    v4l-utils
-    libv4l-dev
-    cmake
-
-## To install:
-
-    sudo apt install v4l-utils
-    sudo apt install libv4l-dev
-    sudo apt install cmake
+The required parameters are frames per second `-fps`, seconds per video `-spv`, bit rate `-br`, and total duration `-t`. The script will then automatically start putting videos in the `data/videos` directory.
