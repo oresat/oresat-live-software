@@ -62,13 +62,7 @@ async function startServer() {
     return;
 }
 
-async function updateCurrentFile(arg) {
-    // Transmission has not begun yet.
-    if(global.currentTimestamp == 0) {
-        global.currentFile = WAIT_VIDEO;
-        arg.attempts = 0; // Keep attempts at 0. 
-    }
-    
+async function updateCurrentFile(arg) {    
     // Transmission has ended, or enough errors have
     // passed through causing an end of transmission.
     if (arg.attempts >= 10)
@@ -104,7 +98,9 @@ async function updateCurrentFile(arg) {
         arg.attempts += 1;
         
         // Send 'Interupted' transmission if looping too much.
-        if (arg.attempts < 5) {
+        if(global.currentTimestamp == 0) {
+            global.currentFile = WAIT_VIDEO;
+        } else if (arg.attempts > 5) {
             global.currentFile = INTERUPT_VIDEO;
         }  
     } else {
