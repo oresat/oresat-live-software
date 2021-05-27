@@ -1,7 +1,6 @@
 # Editor files
 */.vscode/
 
-
 # Object files
 *.o
 *.obj
@@ -17,3 +16,5 @@
 */build/*
 */lib/*
 
+# Output from camera
+camera/data/*
