@@ -1,7 +1,7 @@
 # camera.py
 Script to integrate camera capture and video encoding together.
 
-## Requires: 
+## Requires:
     Python
     ffmpeg
     v4l-utils
@@ -9,13 +9,13 @@ Script to integrate camera capture and video encoding together.
     cmake
 ## Usage:
     To capture and encode video:
-    
+
     python camera.py <frames to capture per second> <capture duration in seconds> <fps to encode videos> <bit rate for encoding>
-        
+
 ## Example:
     python camera.py 3 5 2 250K
-    
-Will capture 3 frames per second for 5 seconds and then feed the frames into ffmpeg to encode video at 3 frames per second at a bit rate of 250,000. 
+
+Will capture 3 frames per second for 5 seconds and then feed the frames into ffmpeg to encode video at 3 frames per second at a bit rate of 250,000.
 
 Script may need to be modified if camera is not recognized.
 
@@ -26,11 +26,11 @@ Software to interface with the Sony IMX214 USB camera.
 
 ## Compliation:
 
-    mkdir build 
-    
+    mkdir build
+
     cd build && cmake ..
-    
-    make 
+
+    make
 
 ## Usage:
 

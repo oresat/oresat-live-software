@@ -58,7 +58,7 @@ static void camctrl(int fh, int request, void *arg){
         returnvalue = v4l2_ioctl(fh, request, arg);
 
     }while(returnvalue == -1 && ((errno == EINTR) || (errno == EAGAIN)));
-    
+
     if(returnvalue == -1){
         printf("CAMERA ERROR: Camera controller failure\n");
         exit(EXIT_FAILURE);
@@ -105,7 +105,7 @@ int checkinput(char * device, char * width, char *height, char*fps, char *captur
         printf("INPUT ERROR: Some input was NULL");
         exit(EXIT_FAILURE);
     }
-    
+
     //Calculate aspect ratio from width and height
     float ratio = widthint / heightint;
 
@@ -133,7 +133,7 @@ int checkinput(char * device, char * width, char *height, char*fps, char *captur
     //Check if correct aspect ratio is obtained given the w and h values
     if(ratio != ratiohelper){
         printf("INPUT ERROR: Image size must conform to 1.33/1 aspect ratio\n");
-        
+
         is_valid = 0;
     }
     //check if fps is in the correct range for what we can transmit
@@ -167,16 +167,16 @@ int main(int argc, char *argv[]){
             printf("INPUT ERROR: Missing CL field or field was NULL");
             exit(EXIT_FAILURE);
         }
-    
+
     }
-    
+
     device = argv[1];
     width = argv[2];
     height = argv[3];
     fps = argv[4];
     capture_duration = argv[5];
 
-    
+
     float numberofimages = 0;
 
     //validate inputs, exit if invalid
@@ -188,9 +188,9 @@ int main(int argc, char *argv[]){
     if(fps != NULL && capture_duration != NULL){
         int f = atoi(fps);
         int cd = atoi(capture_duration);
-    
+
         numberofimages = f * cd;
-        
+
     }
 
     //declare v4l2 variables
@@ -222,7 +222,7 @@ int main(int argc, char *argv[]){
     format.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
     format.fmt.pix.field = V4L2_FIELD_INTERLACED;
     camctrl(fd, VIDIOC_S_FMT, &format);
-    
+
     //Request Buffers from camera api
     CLEAR(request);
     request.count = 2;
@@ -264,7 +264,7 @@ int main(int argc, char *argv[]){
     timefrac = timefrac * 1000000;
     int usecstosleep = (int)timefrac;
     for(i = 0; i < numberofimages; i++){
-        
+
         do {
             FD_ZERO(&framedataset);
             FD_SET(fd, &framedataset);
