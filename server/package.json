@@ -1,11 +1,10 @@
 {
-<<<<<<< HEAD
   "name": "oresat-live",
   "version": "1.0.0",
   "description": "Server running on the handheld ground station for OreSat Live.",
   "main": "index.js",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
     "get-video-duration": "^3.0.2",
     "sleep": "^6.3.0"
   },
