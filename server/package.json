@@ -1,0 +1,15 @@
+{
+  "name": "oresat-live",
+  "version": "1.0.0",
+  "description": "Server running on the handheld ground station for OreSat Live.",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "PSAS",
+  "license": "ISC"
+}
