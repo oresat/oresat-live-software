@@ -100,6 +100,7 @@ async function updateCurrentFile(arg) {
         // Send 'Interupted' transmission if looping too much.
         if(global.currentTimestamp == 0) {
             global.currentFile = WAIT_VIDEO;
+            arg.attempts = 0;
         } else if (arg.attempts > 5) {
             global.currentFile = INTERUPT_VIDEO;
         }  
