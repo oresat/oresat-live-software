@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "express": "^4.17.1",
+    "get-video-duration": "^3.0.2",
+    "sleep": "^6.3.0"
+  }
+}
