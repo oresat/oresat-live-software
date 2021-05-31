@@ -1,6 +1,8 @@
 # Imports
+import os
 import sys
 import time
+import shutil
 import argparse
 import threading
 import subprocess
@@ -8,6 +10,18 @@ import subprocess
 # Global variables
 ARGS = None
 NUM = 0
+
+# Make or overwrite the given directory
+def fresh_dir(path):
+
+    # Overwrite
+    if os.path.exists(path):
+        shutil.rmtree(path)
+        print(f"Deleted existing directory: {path}")
+
+    # Make
+    os.mkdir(args.output)
+    print(f"Created new directory: {path}")
 
 # Capture images for a single video
 def capture_img():
@@ -39,7 +53,7 @@ def make_video():
 if __name__ == "__main__":
 
     # Set up argument parser
-    # TODO: add sanity checks on user input
+    # TODO: add complete sanity checks on user input
     parser = argparse.ArgumentParser(description = "Capture and encode low-fps videos.")
     parser.add_argument("-bin", "--binary", default = "./build/capture",
                         help = "Path to imagecapture binary.")
@@ -57,6 +71,12 @@ if __name__ == "__main__":
                         help = "Bit rate of H.264 encoded videos.")
     parser.add_argument("-t", "--total-duration", type = int, required = True,
                         help = "Total capture duration, in seconds.")
+    parser.add_argument("-io", "--image-output", required = True,
+                        help = "Directory where raw frames should be stored. (Will create / overwrite.)")
+    parser.add_argument("-vo", "--video-output", required = True,
+                        help = "Directory where output videos should be stored. (Will create / overwrite.)")
+    parser.add_argument("-del", "--delete-frames", default = False, action = "store_true",
+                        help = "Delete the raw frames after completion.")
 
     # Parse arguments
     ARGS = parser.parse_args()
@@ -64,6 +84,10 @@ if __name__ == "__main__":
     # Basic check -- make sure seconds per video divides total duration
     if ARGS.total_duration % ARGS.spv != 0:
         sys.exit("Seconds per video does not divide total duration.")
+
+    # Make / overwrite directories
+    fresh_dir(ARGS.image_output)
+    fresh_dir(ARGS.video_output)
 
     # Figure out how many times to loop
     num_loops = ARGS.total_duration // ARGS.spv
@@ -73,3 +97,8 @@ if __name__ == "__main__":
         make_video()
         NUM += 1
         print(f"Finished video {i + 1} of {num_loops}.")
+
+    # If requested, delete frames
+    if ARGS.delete_frames:
+        shutil.rmtree(ARGS.image_output)
+        print(f"Deleted raw frames at: {ARGS.image_output}")
