@@ -4,12 +4,7 @@ import sys
 import time
 import shutil
 import argparse
-import threading
 import subprocess
-
-# Global variables
-ARGS = None
-NUM = 0
 
 # Make or overwrite the given directory
 def fresh_dir(path):
@@ -20,34 +15,8 @@ def fresh_dir(path):
         print(f"Deleted existing directory: {path}")
 
     # Make
-    os.mkdir(args.output)
+    os.mkdir(path)
     print(f"Created new directory: {path}")
-
-# Capture images for a single video
-def capture_img():
-    subprocess.call([ARGS.binary, ARGS.device, str(ARGS.video_x), str(ARGS.video_y), str(ARGS.fps), str(ARGS.spv)])
-
-# Encode single video
-def encode_vid():
-    filename = f"data/videos/output{NUM:04d}.mp4"
-    subprocess.call(["ffmpeg", "-framerate", str(ARGS.fps), "-i", "data/encode_img/image%03d.ppm", "-c:v", "libx264", "-b:v", f"{ARGS.bit_rate}k",
-                     "-preset", "ultrafast", "-loglevel", "quiet", "-an", "-y", filename])
-
-# Do a single multithreaded image capture + video encode
-def make_video():
-
-    # Create threads
-    t1 = threading.Thread(target = capture_img)
-    t2 = threading.Thread(target = encode_vid)
-
-    # Start threads (with a delay)
-    t1.start()
-    time.sleep(0.2)
-    t2.start()
-
-    # Wait until threads finish their job
-    t1.join()
-    t2.join()
 
 # Main script
 if __name__ == "__main__":
@@ -79,26 +48,53 @@ if __name__ == "__main__":
                         help = "Delete the raw frames after completion.")
 
     # Parse arguments
-    ARGS = parser.parse_args()
+    args = parser.parse_args()
 
     # Basic check -- make sure seconds per video divides total duration
-    if ARGS.total_duration % ARGS.spv != 0:
+    if args.total_duration % args.spv != 0:
         sys.exit("Seconds per video does not divide total duration.")
 
     # Make / overwrite directories
-    fresh_dir(ARGS.image_output)
-    fresh_dir(ARGS.video_output)
+    fresh_dir(args.image_output)
+    fresh_dir(args.video_output)
 
     # Figure out how many times to loop
-    num_loops = ARGS.total_duration // ARGS.spv
+    num_loops = args.total_duration // args.spv
+
+    # Interpolate constant ffmpeg arguments
+    ffmpeg_constants = f"-c:v libx264 -b:v {args.bit_rate}k -preset ultrafast -loglevel quiet -an -y"
+
+    # Use a list to keep track of asynchronous ffmpeg calls
+    procs = []
 
     # Make videos
     for i in range(num_loops):
-        make_video()
-        NUM += 1
-        print(f"Finished video {i + 1} of {num_loops}.")
+
+        # Create strings
+        img_dir = os.path.join(args.image_output, f"{i:04d}")
+        vid_name = os.path.join(args.video_output, f"output{i:04d}.mp4")
+
+        # Make directory for frames
+        os.mkdir(img_dir)
+
+        # Make commands
+        capture_command = f"{args.binary} {args.device} {args.video_x} {args.video_y} {args.fps} {args.spv} {img_dir}"
+        ffmpeg_command = f"ffmpeg -framerate {args.fps} -i {os.path.join(img_dir, 'frame%04d.ppm')} {ffmpeg_constants} {vid_name}"
+
+        # Call capture (blocking)
+        print(f"Capturing frames for video {i + 1} of {num_loops}.")
+        subprocess.call(capture_command.split())
+
+        # Call ffmpeg (non-blocking)
+        print(f"Starting encoding of video {i + 1} of {num_loops}.")
+        procs.append(subprocess.Popen(ffmpeg_command.split()))
+
+    # Wait for encoding to finish
+    print(f"Waiting for encoding subprocesses to finish.")
+    return_codes = [p.wait() for p in procs]
+    print(f"Finished, videos available at: {args.video_output}")
 
     # If requested, delete frames
-    if ARGS.delete_frames:
-        shutil.rmtree(ARGS.image_output)
-        print(f"Deleted raw frames at: {ARGS.image_output}")
+    if args.delete_frames:
+        shutil.rmtree(args.image_output)
+        print(f"Deleted raw frames at: {args.image_output}")
