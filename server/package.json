@@ -4,11 +4,11 @@
   "description": "Server running on the handheld ground station for OreSat Live.",
   "main": "index.js",
   "dependencies": {
+    "@ffprobe-installer/ffprobe": "^1.1.0",
     "express": "^4.17.1",
-    "get-video-duration": "^3.0.2",
+    "node-ffprobe": "^3.0.0",
     "sleep": "^6.3.0"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

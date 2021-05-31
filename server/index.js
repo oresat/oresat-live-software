@@ -10,6 +10,8 @@
 */
 
 const fs = require('fs');
+const ffprobe = require('node-ffprobe');
+const ffprobeInstaller = require('@ffprobe-installer/ffprobe');
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
@@ -111,21 +113,18 @@ async function updateCurrentFile(arg) {
     }
 
     // Sleep for Video Length.
+    let duration = await getDurationOfVideoMs(__dirname + '/public/' + global.currentFile);
     return new Promise(resolve => {
-        setTimeout(() => { return resolve(1); }, getDurationOfVideoMs(global.currentFile));
+        setTimeout(() => { return resolve(1); }, duration);
+        //getDurationOfVideoMs(__dirname + '/public/' + global.currentFile))
     });
 }
 
-function getDurationOfVideoMs(filepath) {
-    // Reading duration of an mp4 from NodeJS:
-    // Adapted from https://gist.github.com/Elements-/cf063254730cd754599e
-    var buff = new Buffer.alloc(100);
-    const fd = fs.openSync(__dirname + '/public/' + filepath);
-    fs.readSync(fd, buff);
-    var start = buff.indexOf(new Buffer.from('mvhd')) + 17;
-    var timeScale = buff.readUInt32BE(start, 4);
-    var duration = buff.readUInt32BE(start + 4, 4);
-    return Math.floor(duration/timeScale) * 1000;
+async function getDurationOfVideoMs(filepath) {
+    ffprobe.FFPROBE_PATH = ffprobeInstaller.path;
+    return new Promise(resolve => {
+        return ffprobe(filepath).then(data => {resolve((data['format']['duration']) * 1000)});
+    });
 }
 
 /*
