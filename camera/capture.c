@@ -265,7 +265,7 @@ int main(int argc, char *argv[]) {
         camctrl(fd, VIDIOC_DQBUF, &vidbuffer);
 
         // Prepare ppm output
-        sprintf(ppmname, "%s/frame%03d.ppm", output_dir, i);
+        sprintf(ppmname, "%s/frame%04d.ppm", output_dir, i);
         fout = fopen(ppmname, "w");
         if(!fout) {
             printf("OUTPUT ERROR: Cannot create ppm\n");
