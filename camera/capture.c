@@ -4,11 +4,10 @@
 *  This program will take in the video device, res, fps, and capture duration
 *  It will output raw frames of images corresponding to the input setting that will be converted later into jpegs
 *
-*  NOTES:
-    Uses v4l2 camera API
+*  NOTE: uses v4l2 camera API
 */
-#define CLEAR(x) memset(&(x), 0, sizeof(x))
 
+// Includes
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -22,23 +21,23 @@
 #include <libv4l2.h>
 #include <linux/videodev2.h>
 
+// Macro to clear memory
+#define CLEAR(x) memset(&(x), 0, sizeof(x))
 
-
-//Globals for input args :O
+// Globals for input args :O
 char * device;
 char * width;
 char * height;
 char * fps;
 char * capture_duration;
+char * output_dir;
 
-
-struct capbuffer{
+// Struct for capture buffer
+struct capbuffer {
     void * start;
     size_t length;
 };
 
-
-//camctrl
 /*
 *  DESCRIPTION: Helper function to the camera API be talked to
 *
@@ -51,22 +50,20 @@ struct capbuffer{
 *
 *    void
 */
-static void camctrl(int fh, int request, void *arg){
+static void camctrl(int fh, int request, void *arg) {
 
     int returnvalue;
-    do{
+    do {
         returnvalue = v4l2_ioctl(fh, request, arg);
+    } while (returnvalue == -1 && ((errno == EINTR) || (errno == EAGAIN)));
 
-    }while(returnvalue == -1 && ((errno == EINTR) || (errno == EAGAIN)));
-
-    if(returnvalue == -1){
+    if (returnvalue == -1) {
         printf("CAMERA ERROR: Camera controller failure\n");
         exit(EXIT_FAILURE);
     }
 
 }
 
-//checkinput
 /*
 *  DESCRIPTION: Function validates command line inputs based on our predetermined valid inputs
 *
@@ -82,118 +79,100 @@ static void camctrl(int fh, int request, void *arg){
 *
 *    int: 1 or 0 depending on if inputs are all verified.
 */
+int checkinput(char * device, char * width, char *height, char*fps, char *capture_duration) {
 
-//int checkinput(char * device, char * width, char *height, char*fps, char *capture_duration);
-int checkinput(char * device, char * width, char *height, char*fps, char *capture_duration){
-
+    // Basic variables
     int is_valid = 1;
     float ratiohelper = 4.0/3.0;
 
-
-    //Convert input strings to int/floats
+    // Convert input strings to int/floats
+    // TODO: check return values
     float widthint = 0;
     float heightint = 0;
     int fpsint = 0;
     int captureint = 0;
-    if(width != NULL && height != NULL && fps != NULL && capture_duration != NULL){
+    if (width != NULL && height != NULL && fps != NULL && capture_duration != NULL) {
         widthint = atof(width);
         heightint = atof(height);
         fpsint = atoi(fps);
         captureint = atoi(capture_duration);
-    }
-    else{
+    } else {
         printf("INPUT ERROR: Some input was NULL");
         exit(EXIT_FAILURE);
     }
 
-    //Calculate aspect ratio from width and height
+    // Calculate aspect ratio from width and height
     float ratio = widthint / heightint;
 
-    //Check if the video device has the right name
-    /*if(strcmp(device, "/dev/video0") != 0){
-        if(strcmp(device, "/dev/video1") == 0){
-        is_valid = 1;
-    }
-        else{
-           printf("INPUT ERROR: This is probably the wrong video device(unless you're testing)\n");
-            is_valid = 0;
-        }
-    }*/
-
-    //Check if the width is within limits of the camera resolution(until we know limits of dxwifi)
-    if(widthint < 160 || widthint > 4160 ){
+    // Check if the width is within limits of the camera resolution
+    if (widthint < 160 || widthint > 4160 ) {
         printf("INPUT ERROR: Width is too large or too small\n");
         is_valid = 0;
     }
-    //Check if the height is within limits of the camera resolution(until we know limits of dxwifi)
-    if(heightint < 120 || heightint > 3120){
+
+    // Check if the height is within limits of the camera resolution
+    if (heightint < 120 || heightint > 3120) {
         printf("INPUT ERROR: Height is too large or too small\n");
         is_valid = 0;
     }
-    //Check if correct aspect ratio is obtained given the w and h values
-    if(ratio != ratiohelper){
+
+    // Check if correct aspect ratio is obtained given the w and h values
+    if (ratio != ratiohelper) {
         printf("INPUT ERROR: Image size must conform to 1.33/1 aspect ratio\n");
-
         is_valid = 0;
-    }
-    //check if fps is in the correct range for what we can transmit
-    if(fpsint < 1 || fpsint > 9){
-        printf("INPUT ERROR: Frames per second is too high or too low\n");
-        is_valid = 0;
-    }
-    //check if the cap. duration is too long
-    if(captureint < 1 || captureint > 600){
-        printf("INPUT ERROR: Capture duration can't be over 10 minutes\n");
-        is_valid = 0;
-    }
-    //return values based on valid inputs
-    if(is_valid == 0){
-        return 0;
     }
 
-    else{
-        return 1;
+    // Check if fps is in the correct range for what we can transmit
+    if (fpsint < 1 || fpsint > 10) {
+        printf("INPUT ERROR: Frames per second is too high (max: 10) or too low (min: 1)\n");
+        is_valid = 0;
     }
+
+    // Check if the cap. duration is too long
+    if (captureint < 1 || captureint > 600) {
+        printf("INPUT ERROR: Capture duration can't be over 600 seconds (10 minutes)\n");
+        is_valid = 0;
+    }
+
+    // Return resulting valid value
+    return is_valid;
 }
 
 //TODO: error checking
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
 
-    //capture cli
-
-    for (int i = 0; i < 6; ++i){
+    // Check that CLI arguments exist
+    for (int i = 0; i < 7; ++i) {
         char * temp = argv[i];
-        if(temp == NULL){
-            printf("INPUT ERROR: Missing CL field or field was NULL");
+        if (temp == NULL) {
+            printf("INPUT ERROR: Missing command line field (or field was NULL)\n");
             exit(EXIT_FAILURE);
         }
-
     }
 
+    // Get command line arguments
     device = argv[1];
     width = argv[2];
     height = argv[3];
     fps = argv[4];
     capture_duration = argv[5];
+    output_dir = argv[6];
 
-
-    float numberofimages = 0;
-
-    //validate inputs, exit if invalid
-    if(!checkinput(device,width,height,fps,capture_duration)){
+    // Validate inputs
+    if (!checkinput(device, width, height, fps, capture_duration)) {
         printf("Input invalid! See error output\n");
         exit(EXIT_FAILURE);
     }
-    //Calculate final total
-    if(fps != NULL && capture_duration != NULL){
+
+    // Calculate total number of images
+    float numberofimages = 0;
+    if (fps != NULL && capture_duration != NULL) {
         int f = atoi(fps);
         int cd = atoi(capture_duration);
-
         numberofimages = f * cd;
-
     }
 
-    //declare v4l2 variables
+    // Declare some variables
     struct v4l2_format format;
     struct v4l2_buffer vidbuffer;
     struct v4l2_requestbuffers request;
@@ -207,14 +186,14 @@ int main(int argc, char *argv[]){
     FILE *fout;
     struct capbuffer *buffers;
 
-    //open video device, exit if device can't be opened
-    fd = v4l2_open(device, O_RDWR | O_NONBLOCK,0);
-    if(fd < 0){
+    // Open video device, exit if device can't be opened
+    fd = v4l2_open(device, O_RDWR | O_NONBLOCK, 0);
+    if (fd < 0){
         printf("CAMERA ERROR: Video device cannot be opened\n");
         exit(EXIT_FAILURE);
     }
 
-    //Set up v4l format fields for when image capture begins
+    // Set up v4l format fields for when image capture begins
     CLEAR(format);
     format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     format.fmt.pix.width = atoi(width);
@@ -223,32 +202,30 @@ int main(int argc, char *argv[]){
     format.fmt.pix.field = V4L2_FIELD_INTERLACED;
     camctrl(fd, VIDIOC_S_FMT, &format);
 
-    //Request Buffers from camera api
+    // Request buffers from camera api
     CLEAR(request);
     request.count = 2;
     request.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     request.memory = V4L2_MEMORY_MMAP;
     camctrl(fd, VIDIOC_REQBUFS, &request);
 
-    //Set up buffers and memory maps
+    // Set up buffers and memory maps
     buffers = calloc(request.count, sizeof(*buffers));
-    for(numberofbuffers = 0; numberofbuffers < request.count; ++numberofbuffers){
+    for (numberofbuffers = 0; numberofbuffers < request.count; ++numberofbuffers) {
         CLEAR(vidbuffer);
         vidbuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         vidbuffer.memory = V4L2_MEMORY_MMAP;
         vidbuffer.index = numberofbuffers;
         camctrl(fd, VIDIOC_QUERYBUF, &vidbuffer);
-
         buffers[numberofbuffers].length = vidbuffer.length;
-        buffers[numberofbuffers].start = v4l2_mmap(NULL,
-         vidbuffer.length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, vidbuffer.m.offset);
-        if(MAP_FAILED == buffers[numberofbuffers].start){
+        buffers[numberofbuffers].start = v4l2_mmap(NULL, vidbuffer.length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, vidbuffer.m.offset);
+        if (MAP_FAILED == buffers[numberofbuffers].start) {
             printf("MEMORY ERROR: Buffer mapping failed\n");
             exit(EXIT_FAILURE);
         }
     }
 
-    for(i = 0; i < numberofbuffers; ++i){
+    for (i = 0; i < numberofbuffers; ++i) {
         CLEAR(vidbuffer);
         vidbuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         vidbuffer.memory = V4L2_MEMORY_MMAP;
@@ -256,55 +233,59 @@ int main(int argc, char *argv[]){
         camctrl(fd, VIDIOC_QBUF, &vidbuffer);
     }
     buffertype = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    //Image capture begin
+
+    // Image capture begin
     camctrl(fd, VIDIOC_STREAMON, &buffertype);
 
-    //Capture images here, first calculate the time to sleep for proxy fps value.
-    float timefrac = (float) 1/atoi(fps);
+    // Calculate the time to sleep for proxy fps value
+    float timefrac = (float) 1 / atoi(fps);
     timefrac = timefrac * 1000000;
-    int usecstosleep = (int)timefrac;
-    for(i = 0; i < numberofimages; i++){
+    int usecstosleep = (int) timefrac;
+
+    // Capture images here
+    for (i = 0; i < numberofimages; i++) {
 
         do {
             FD_ZERO(&framedataset);
             FD_SET(fd, &framedataset);
-
             timevalue.tv_sec = 2;
             timevalue.tv_usec = 0;
-
             r = select(fd + 1, &framedataset, NULL, NULL, &timevalue);
         } while ((r == -1 && (errno = EINTR)));
-        if(r == -1){
-            printf("CAPTURE ERROR: Framedata could not be selected\n");
+
+        if (r == -1) {
+            printf("CAPTURE ERROR: Frame data could not be selected\n");
             return errno;
         }
-        //Fill buffer with frame data
+
+        // Fill buffer with frame data
         CLEAR(vidbuffer);
         vidbuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         vidbuffer.memory = V4L2_MEMORY_MMAP;
         camctrl(fd, VIDIOC_DQBUF, &vidbuffer);
 
-        //Prepare ppm outputs
-        sprintf(ppmname, "data/encode_img/image%03d.ppm", i);
+        // Prepare ppm output
+        sprintf(ppmname, "%s/frame%03d.ppm", output_dir, i);
         fout = fopen(ppmname, "w");
         if(!fout) {
             printf("OUTPUT ERROR: Cannot create ppm\n");
             exit(EXIT_FAILURE);
         }
-        //Fill ppm files with frame data
-        fprintf(fout, "P6\n%d %d 255\n",format.fmt.pix.width, format.fmt.pix.height);
+
+        // Fill ppm file with frame data
+        fprintf(fout, "P6\n%d %d 255\n", format.fmt.pix.width, format.fmt.pix.height);
         fwrite(buffers[vidbuffer.index].start, vidbuffer.bytesused, 1, fout);
         fclose(fout);
 
-        camctrl(fd,VIDIOC_QBUF, &vidbuffer);
+        // Sleep until next capture
+        camctrl(fd, VIDIOC_QBUF, &vidbuffer);
         usleep(usecstosleep);
     }
+
+    // Cleanup
     buffertype = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     camctrl(fd, VIDIOC_STREAMOFF, &buffertype);
-    //Image capture ends, buffers are unmapped
-    for(i = 0; i < numberofbuffers; ++i)
-        v4l2_munmap(buffers[i].start, buffers[i].length);
+    for (i = 0; i < numberofbuffers; ++i) v4l2_munmap(buffers[i].start, buffers[i].length);
     v4l2_close(fd);
+    return 0;
 }
-
-
