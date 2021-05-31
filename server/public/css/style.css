@@ -17,11 +17,21 @@ body {
     }
 }
 
+h1 {
+    position: relative;
+    top: 50%;
+    transform: translate(0, -50%);
+    border: 2px dashed #f69c55;
+}
+
 .no-padding {
+    position: absolute;
     text-align: center;
     padding: 20px;
     color: white;
     background-color: #6C7F11;
     height: 135px;
+    font-family: 'Oswald', Helvetica, sans-serif;
+    font-weight: 900;
 }
 
