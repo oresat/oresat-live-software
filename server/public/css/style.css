@@ -21,7 +21,12 @@ h1 {
     position: relative;
     top: 50%;
     transform: translate(0, -50%);
-    border: 2px dashed #f69c55;
+}
+
+#timestamp {
+    font-family: 'Courier New', Courier, monospace;
+    padding-left: 30px;
+    padding-top: 15px;
 }
 
 .no-padding {
@@ -35,3 +40,7 @@ h1 {
     font-weight: 900;
 }
 
+#videoplayer {
+    padding-top: 135px;
+    position: static;
+}

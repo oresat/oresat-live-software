@@ -34,9 +34,6 @@ if(process.argv.length != 3) {
 const videoPath = process.argv[2];
 const VIDEO_REGEX = /\w+.mp4/;
 
-
-
-
 global.currentTimestamp = 0;
 global.currentFile = WAIT_VIDEO; // Set to waiting by default.
 
@@ -48,8 +45,14 @@ app.get('/', (req, res) => {
 app.get('/video', function (req, res) {
     // Send the video.
     res.statusCode = 200;
-    res.send(global.currentFile);
     console.log(global.currentTimestamp, global.currentFile);
+    if (global.currentFile == WAIT_VIDEO || 
+        global.currentFile == INTERUPT_VIDEO || 
+        global.currentFile == ENDED_VIDEO) {
+        res.send({ 'video': global.currentFile, 'timestamp' : 0 });
+    } else {
+        res.send({ 'video': global.currentFile, 'timestamp' : global.currentTimestamp });
+    }
 });
 
 async function startServer() {   
@@ -85,12 +88,12 @@ async function updateCurrentFile(arg) {
         }
         
         // Find the files' creation date. 
-        let birthtime = fs.statSync('public/' + videoPath + file.name).birthtimeMs;
+        let mtime = fs.statSync('public/' + videoPath + file.name).mtimeMs;
         
         // If file is later than the current latest file, and less than the next best file,
         // set this to the next best file.
-        if (birthtime > global.currentTimestamp && (!nextTime || birthtime < nextTime)) {
-            nextTime = birthtime;
+        if (mtime > global.currentTimestamp && (!nextTime || mtime < nextTime)) {
+            nextTime = mtime;
             nextFile = file.name;
         }
     }
@@ -139,4 +142,5 @@ async function getDurationOfVideoMs(filepath) {
 http.listen(port, host, () => {
     console.log(`Server is running on http://${host}:${port}`);
 });
+
 startServer();
