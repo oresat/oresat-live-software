@@ -12,11 +12,11 @@ def fresh_dir(path):
     # Overwrite
     if os.path.exists(path):
         shutil.rmtree(path)
-        print(f"Deleted existing directory: {path}")
+        print("Deleted existing directory: {}".format(path))
 
     # Make
     os.mkdir(path)
-    print(f"Created new directory: {path}")
+    print("Created new directory: {}".format(path))
 
 # Main script
 if __name__ == "__main__":
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     num_loops = args.total_duration // args.spv
 
     # Interpolate constant ffmpeg arguments
-    ffmpeg_constants = f"-c:v libx264 -b:v {args.bit_rate}k -preset ultrafast -loglevel quiet -an -y"
+    ffmpeg_constants = "-c:v libx264 -b:v {}k -preset ultrafast -loglevel quiet -an -y".format(args.bit_rate)
 
     # Use a list to keep track of asynchronous ffmpeg calls
     procs = []
@@ -71,30 +71,30 @@ if __name__ == "__main__":
     for i in range(num_loops):
 
         # Create strings
-        img_dir = os.path.join(args.image_output, f"{i:04d}")
-        vid_name = os.path.join(args.video_output, f"output{i:04d}.mp4")
+        img_dir = os.path.join(args.image_output, "{:04d}".format(i))
+        vid_name = os.path.join(args.video_output, "output{:04d}.mp4".format(i))
 
         # Make directory for frames
         os.mkdir(img_dir)
 
         # Make commands
-        capture_command = f"{args.binary} {args.device} {args.video_x} {args.video_y} {args.fps} {args.spv} {img_dir}"
-        ffmpeg_command = f"ffmpeg -framerate {args.fps} -i {os.path.join(img_dir, 'frame%04d.ppm')} {ffmpeg_constants} {vid_name}"
+        capture_command = "{} {} {} {} {} {} {}".format(args.binary, args.device, args.video_x, args.video_y, args.fps, args.spv, img_dir)
+        ffmpeg_command = "ffmpeg -framerate {} -i {} {} {}".format(args.fps, os.path.join(img_dir, 'frame%04d.ppm'), ffmpeg_constants, vid_name)
 
         # Call capture (blocking)
-        print(f"Capturing frames for video {i + 1} of {num_loops}.")
+        print("Capturing frames for video {} of {}.".format(i + 1, num_loops))
         subprocess.call(capture_command.split())
 
         # Call ffmpeg (non-blocking)
-        print(f"Starting encoding of video {i + 1} of {num_loops}.")
+        print("Starting encoding of video {} of {}.".format(i + 1, num_loops))
         procs.append(subprocess.Popen(ffmpeg_command.split()))
 
     # Wait for encoding to finish
-    print(f"Waiting for encoding subprocesses to finish.")
+    print("Waiting for encoding subprocesses to finish.")
     return_codes = [p.wait() for p in procs]
-    print(f"Finished, videos available at: {args.video_output}")
+    print("Finished, videos available at: {}".format(args.video_output))
 
     # If requested, delete frames
     if args.delete_frames:
         shutil.rmtree(args.image_output)
-        print(f"Deleted raw frames at: {args.image_output}")
+        print("Deleted raw frames at: {}".format(args.image_output))
