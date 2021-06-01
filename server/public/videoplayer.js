@@ -18,8 +18,8 @@ initVideo(videoB);
 
 videoA.autoplay = true;
 nextVideo = getNextVideo();
-videoA.src = nextVideo['video'];
-ts.textContent = nextVideo['timestamp'];
+videoA.src = nextVideo["video"];
+ts.textContent = nextVideo["timestamp"];
 videoPlayer.appendChild(videoA);
 
 videoB.style.display = 'none';
@@ -34,11 +34,11 @@ function getNextVideo()
         dataType: "json",
         async: false
     }).responseJSON;
-    if (!response["timestamp"]) {
+    if (response["timestamp"] === 0) {
         response["timestamp"] = "Not Available";
     } else {
         date = new Date(response["timestamp"]);
-        response["timestamp"] = date.toString();
+        response["timestamp"] = date.toLocaleTimeString('en-US');
     }
     return response; 
 }
@@ -47,13 +47,14 @@ function initVideo(video)
 {
     video.muted = true;
     video.preload = 'auto';
+    video.text = "Not Available";
     
     video.onplay = function ()
     {       
         nextVideo = getNextVideo()
         video.next.src = nextVideo['video'];
         video.next.pause();   
-        video.text = nextVideo['timestamp'];
+        video.next.text = nextVideo['timestamp'];
     }
 
     video.onended = function()
