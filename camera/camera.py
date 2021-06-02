@@ -11,12 +11,19 @@ def fresh_dir(path):
 
     # Overwrite
     if os.path.exists(path):
-        shutil.rmtree(path)
-        print("Deleted existing directory: {}".format(path))
-
-    # Make
-    os.mkdir(path)
-    print("Created new directory: {}".format(path))
+        for f in os.listdir(path):
+            p = os.path.join(path, f)
+            try:
+                shutil.rmtree(p)
+                print("Removed directory: {}".format(f))
+            except OSError:
+                os.remove(p)
+                print("Removed file: {}".format(f))
+        print("Cleaned Directory: {}".format(path))
+    else:
+        # Make
+        os.mkdir(path)
+        print("Created new directory: {}".format(path))
 
 # Main script
 if __name__ == "__main__":
