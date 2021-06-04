@@ -28,14 +28,17 @@ const ENDED_VIDEO = "ended.mp4";
 // Only select files in video format.
 // Terminate if the directory the video files are coming from is not specified.
 if(process.argv.length != 3) {
-    console.log("Please include the directory the video files are coming from");
+    console.log("Please include the directory to read the video files from and the default sleep in case of an error.");
+    console.log("'node index.js [directory]'");
     process.exit(1);
 }
+
 const videoPath = process.argv[2];
 const VIDEO_REGEX = /\w+.mp4/;
 
 global.currentTimestamp = 0;
 global.currentFile = WAIT_VIDEO; // Set to waiting by default.
+global.duration = 3000; // Default duration.
 
 app.use(express.static(__dirname + '/public'));
 
@@ -45,14 +48,14 @@ app.get('/', (req, res) => {
 app.get('/video', function (req, res) {
     // Send the video.
     res.statusCode = 200;
-    console.log(global.currentTimestamp, global.currentFile);
+    console.log(global.currentTimestamp, global.currentFile, global.duration);
     if (global.currentFile == WAIT_VIDEO || 
         global.currentFile == INTERUPT_VIDEO || 
         global.currentFile == ENDED_VIDEO) {
-        res.send({ 'video': global.currentFile, 'timestamp' : 0 });
-    } else {
-        res.send({ 'video': global.currentFile, 'timestamp' : global.currentTimestamp });
-    }
+            res.send({ 'video': global.currentFile, 'timestamp' : 0 , 'duration' : global.duration});
+        } else {
+            res.send({ 'video': global.currentFile, 'timestamp' : global.currentTimestamp , 'duration' : global.duration});
+        }
 });
 
 async function startServer() {   
@@ -117,16 +120,31 @@ async function updateCurrentFile(arg) {
 
     // Sleep for Video Length.
     let duration = await getDurationOfVideoMs(__dirname + '/public/' + global.currentFile);
+    if (duration === 0) {
+        global.currentFile = INTERUPT_VIDEO;
+        duration = await getDurationOfVideoMs(__dirname + '/public/' + global.currentFile);
+    }
+    global.duration = duration;
     return new Promise(resolve => {
         setTimeout(() => { return resolve(1); }, duration);
-        //getDurationOfVideoMs(__dirname + '/public/' + global.currentFile))
     });
 }
 
 async function getDurationOfVideoMs(filepath) {
     ffprobe.FFPROBE_PATH = ffprobeInstaller.path;
     return new Promise(resolve => {
-        return ffprobe(filepath).then(data => {resolve((data['format']['duration']) * 1000)});
+        return ffprobe(filepath).then(data => {
+            if (("format" in data) && ("duration" in data["format"])) {
+                resolve(data["format"]["duration"] * 1000);
+            }
+            else {
+                console.log("Invalid File: " + global.currentFile);
+                resolve(0);
+            }
+        }).catch(error => {
+            console.log(error);
+            resolve(0);
+        });
     });
 }
 

@@ -7,22 +7,20 @@ var ts = document.getElementById('time');
 videoA = document.createElement('video');
 videoB = document.createElement('video');
 
-formatVideo(videoA);
-formatVideo(videoB);
-
 videoA.next = videoB;
 videoB.next = videoA;
+videoA.autoplay = true;
+videoB.style.display = 'none';
 
 initVideo(videoA);
 initVideo(videoB);
 
-videoA.autoplay = true;
-nextVideo = getNextVideo();
-videoA.src = nextVideo["video"];
-ts.textContent = nextVideo["timestamp"];
-videoPlayer.appendChild(videoA);
+// Initial things for the beginning of page load.
+response = getNextVideo();
+populateVideoFromResponse(videoA, response);
+ts.textContent = videoA.text;
 
-videoB.style.display = 'none';
+videoPlayer.appendChild(videoA);
 videoPlayer.appendChild(videoB);
 
 function getNextVideo()
@@ -43,27 +41,45 @@ function getNextVideo()
     return response; 
 }
 
+function populateVideoFromResponse(video, response) {
+    video.src = response["video"];
+    video.text = response["timestamp"];
+    video._duration = response["duration"];
+}
+
 function initVideo(video)
 {
+    formatVideo(video);
     video.muted = true;
     video.preload = 'auto';
-    video.text = "Not Available";
     
     video.onplay = function ()
     {       
-        nextVideo = getNextVideo()
-        video.next.src = nextVideo['video'];
-        video.next.pause();   
-        video.next.text = nextVideo['timestamp'];
+        response = getNextVideo()
+        populateVideoFromResponse(this.next, response);
+        this.next.pause();
+        setTimeout(() => { killVideo(this) }, this._duration);
     }
+}
 
-    video.onended = function()
-    {
-        this.style.display = 'none';
-        video.next.style.display='block';
-        video.next.play()
-        ts.textContent = video.next.text;
-    }
+function killVideo(video)
+{
+    video.style.display = 'none';
+
+    next = video.next;
+    next.style.display = 'block';
+    ts.textContent = next.text;
+    next.play();
+    
+    delete video;
+
+    newVideoElement = document.createElement('video');
+    newVideoElement.style.display = 'none';
+    next.next = newVideoElement;
+    
+    formatVideo(newVideoElement);
+    initVideo(newVideoElement);
+    videoPlayer.appendChild(newVideoElement);
 }
 
 function formatVideo(id) 
