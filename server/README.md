@@ -5,7 +5,7 @@ This software is made to run a Node JS web server on a Raspberry Pi Zero W displ
 
 ## Requirements
 ---
-There are two elements to this web server. To have the full range of motion, please have a Raspberry Pi available, a smart phone. However, you can run this on a local machine with node installed.
+There are two elements to this web server. To have the full range of motion, please have a Raspberry Pi available, and a smart phone. However, you can run this on a local machine with node installed.
 
 To see dependencies, run `npm list` and to install, run `npm install` 
 
