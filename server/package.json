@@ -1,0 +1,17 @@
+{
+  "name": "oresat-live",
+  "version": "1.0.0",
+  "description": "Server running on the handheld ground station for OreSat Live.",
+  "main": "index.js",
+  "dependencies": {
+    "@ffprobe-installer/ffprobe": "^1.1.0",
+    "express": "^4.17.1",
+    "node-ffprobe": "^3.0.0",
+    "sleep": "^6.3.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "PSAS",
+  "license": "GPLV3"
+}

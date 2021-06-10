@@ -1,0 +1,50 @@
+body {
+    background-color: #FFFFFF;
+    font-family: sans-serif;
+}
+
+#logo {
+    float: left;
+    width: auto;
+    height: auto;
+}
+
+@media (max-width: 768) {
+    .no-padding {
+        display: block;
+        padding: 20px;
+        font-size: small;
+    }
+}
+
+h1 {
+    position: relative;
+    top: 50%;
+    transform: translate(0, -50%);
+}
+
+#timestamp {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: large;
+    font-weight: bold;
+    padding-top: 15px;
+    text-align: center;
+}
+
+.no-padding {
+    position: absolute;
+    text-align: center;
+    padding: 20px;
+    color: white;
+    background-color: #6C7F11;
+    height: 135px;
+    font-family: 'Oswald', Helvetica, sans-serif;
+    font-weight: 900;
+}
+
+#videoplayer {
+    padding-top: 135px;
+    position: static;
+    max-width: 1200px;
+    margin: 0 auto;
+}

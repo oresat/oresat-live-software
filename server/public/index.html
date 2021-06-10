@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>OreSat Live Ground Station</title>
+        <meta name="description" content="Live viewing page for Oresat.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link
+            rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+            integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+            crossorigin="anonymous"
+        />
+        <link rel="stylesheet" href="/css/style.css" />
+        <link href="https://fonts.googleapis.com/css?family=Oswald%3A400%2C600%2C700%7COpen%20Sans%3A400%2C600%2C700&amp;display=swap" rel="stylesheet" nonce="">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <div class="container-fluid no-padding">
+            <div id="logo">
+                <img class="left" src="https://pbs.twimg.com/profile_images/981338224579592197/9V0UDR1v_400x400.jpg" width="100px" height="100px" />
+            </div>
+            <h1>ORESAT LIVE</h1>
+        </div>
+        <div id="videoplayer">
+        </div>
+        <div id="text">
+            <p id="timestamp">Time Received: <span id="time"> Not Available </span></p>
+        </div>
+        <script src="./videoplayer.js"> </script>
+    </body>
+</html>

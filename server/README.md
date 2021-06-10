@@ -1,91 +1,31 @@
-## Server
-#### Authored by Abbie Utley and Alejandro Castaneda
+# server
 
-This software is made to run a web server on a Raspberry Pi Zero W displaying the OreSat Live video stream.
+The software in this folder creates a Node.js web server to host OreSat Live streams.
 
-We have two things so far: The Raspberry Pi Zero W access point, and a JavaScript page that has "Hello World" displayed. This is the breakdown.
+### Dependencies
 
----
+Once you have [Node.js](https://nodejs.org/en/), you can simply run `npm install` to get all the dependencies. You can run this on your local machine, but it's designed to be run on a [Raspberry Pi Zero W](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) through an access point connection. See [below](#running-on-a-raspberry-pi-zero-w) for more details.
 
-### How to Build an Access Point on a Raspberry Pi Zero W
+### Usage
 
-Instructions adapted from [Raspberry Pi documentation](https://www.raspberrypi.org/documentation/configuration/wireless/access-point-routed.md)
-The following steps will tell you how to build an access point on a Raspberry Pi Zero W. __This may be automated with a script that still needs testing.__
-
-1. Have a Raspberry Pi Zero W with a working OS. This can be Headless or not, the decision is yours.
-2. Take note of the network your Pi is connected to. Raspberry Pi Zero Ws do not have Ethernet ports, so your internet access will have to
-be wireless. If the network `192.168.4.0/24` is taken, use another address for your IP network (e.g. `192.168.10.0/24`)
-3. Run the following in the terminal of your Raspberry Pi:
-    1. `sudo apt install hostapd`
-    2. `sudo systemctl unmask hostapd`
-    3. `sudo systemctl enable hostapd`
-    4. `sudo apt install dnsmasq`
-    5. `sudo DEBIAN_FRONTEND=noninteractive apt install -y netfilter-persistent iptables-persistent`
-    6. `sudo nano /etc/dhcpcd.conf` *NOTE: this will open a window for you to edit*
-4. Once the window opens to edit, Go to the end of the file and add the following with the `static ip_address` field as the free IP address
-not currently in use:
 ```
-interface wlan0
-    static ip_address=192.168.4.1/24
-    nohook wpa_supplicant
+node index.js <video directory>/
 ```
-5. Save and quit the file
-6. Run the following command in the terminal `sudo nano /etc/sysctl.d/routed-ap.conf` This will open a new file for you to edit. Add 
-the following:
-```
-# https://www.raspberrypi.org/documentation/configuration/wireless/access-point-routed.md
-# Enable IPv4 routing
-net.ipv4.ip_forward=1
-```
-7. Save and quit the file
-8. Run the following commands in the terminal of your Raspberry Pi:
-    1. `sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE`
-    2. `sudo netfilter-persistent save`
-9. Configure the DHCP and DNS services
-    1. `sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig` to keep the original configuration
-    2. `sudo nano /etc/dnsmasq.conf`. Add the following:
-```
-interface=wlan0
-dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
-domain=wlan
-address=/gw.wlan/192.168.4.1
-```
-10. Ensure WiFi radio is not blocked with `sudo rfkill unblock wlan`
-11. Configure the access point by `sudo nano /etc/hostapd/hostapd.conf`
-    and Add the following: _Note that this assumes a wifi access point named "pi" with the password "oresat" in the US._
-```
-country_code=US
-interface=wlan0
-hw_mode=g
-channel=7
-macaddr_acl=0
-auth_algs=1
-ignore_broadcast_ssid=0
-wpa=2
-ssid=pi
-wpa_passphrase=oresat
-wpa_key_mgmt=WPA-PSK
-wpa_pairwise=TKIP
-rsn_pairwise=CCMP
-```
-12. Finally, run your access point with `sudo systemctl reboot`.
 
-Once all the steps are finished, you should be able to access the Raspberry Pi's network through another device like a smartphone, laptop, or tablet. Keep in mind the networks name and password as declared in step 11. 
+Depending on your setup, you may also need `sudo`. This will start the server, which goes through MP4 videos in the specified directory and plays them in chronological order, according to the file timestamps.
 
+Note that the specified video directory must be in the `public` folder. The path is also specified relative to `public`. For example, to use the test videos contained in `public/test-stream/`, you would run `node index.js test-stream/`.
 
----
+You can control the host and port the server runs on by specifying the `HOST` and `PORT` environment variables. By default, the server will start at `0.0.0.0:80`.
 
-### Description of files so far:
+The two files `index.js` and `public/videoplayer.js` do most of the heavy lifting. The former contains the server-side code, which continually updates the current video in the stream and provides a `/video` endpoint that clients can query to access current stream information. The latter contains the client-side code that sets up the HTML elements and queries the server to present the stream.
 
-* index.js: 
-* package.json: 
+### Running on a Raspberry Pi Zero W
 
----
+To set up a fresh Raspberry Pi Zero W as an open wireless access point, follow [this](https://github.com/TomHumphries/RaspberryPiHotspot) README up to the "Configuring the Node.js server to start on boot" section.
 
-### To Do List
+Once you have that set up, you should be able to run this server on the RasPi with `HOST` set to `oresat.live` (or whatever else you want) and `PORT` set to whatever you specified with `iptables` (3000 if you followed the tutorial exactly).
 
-- [x] Set Up Access Point
-- [x] Build Server hosted on said access point
-- [ ] Set up a captive portal for the access point
-- [ ] Create a video player to run the video from the satellite
-- [ ] Make it look nice :)
+Then with another device, you should be able to connect to the RasPi's access point, and then navigate to `oresat.live` in the browser to view the stream.
+
+_To-do: turn this into a Bash script._
