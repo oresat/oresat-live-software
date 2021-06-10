@@ -39,11 +39,11 @@ if __name__ == "__main__":
                         help = "Horizontal resolution of video.")
     parser.add_argument("-vy", "--video-y", type = int, default = 480,
                         help = "Vertical resolution of video.")
-    parser.add_argument("-fps", "--frames-per-second", dest = "fps", type = int, required = True,
+    parser.add_argument("-fps", "--frames-per-second", dest = "fps", type = int, default = 4,
                         help = "Desired frames per second. (Note: this will probably only work at or under 10fps.)")
-    parser.add_argument("-spv", "--seconds-per-video", dest = "spv", type = int, required = True,
+    parser.add_argument("-spv", "--seconds-per-video", dest = "spv", type = int, default = 3,
                         help = "Seconds per created video. Must divide total duration.")
-    parser.add_argument("-br", "--bit-rate", type = int, required = True,
+    parser.add_argument("-br", "--bit-rate", type = int, default = 100,
                         help = "Bit rate of H.264 encoded videos.")
     parser.add_argument("-t", "--total-duration", type = int, required = True,
                         help = "Total capture duration, in seconds.")
