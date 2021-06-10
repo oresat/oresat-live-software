@@ -17,8 +17,8 @@ const app = express();
 const http = require('http').createServer(app);
 
 // Change this to address of the Rasp Pi
-const host = '0.0.0.0'; //'192.168.1.164'
-const port = 80;
+const host = process.env.HOST || '0.0.0.0'; //'192.168.1.164'
+const port = process.env.PORT || 80;
 
 /* PREMADE VIDEOS */
 const WAIT_VIDEO = "wait.mp4";
