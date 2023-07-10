@@ -31,7 +31,12 @@ set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/oresat/oresat-live-softwar
 execute_process(COMMAND dpkg --print-architecture OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 # RX component CPack config
-set(CPACK_DEBIAN_CAMERA_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}.deb")
+string(CONCAT CPACK_DEBIAN_CAMERA_FILE_NAME
+    "${CPACK_PACKAGE_NAME}_"
+    "${CPACK_PACKAGE_VERSION}_"
+    "${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}.deb"
+    )
+
 include(CPack)
 set(CAPTURE_DESCRIPTION "OreSat Live Software camera capture program")
 file(GLOB sources ./*)
