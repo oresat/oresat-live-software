@@ -1,0 +1,11 @@
+[Unit]
+Description=OreSat Live Software Server
+After=network.target
+
+[Service]
+ExecStart=/usr/local/sbin/oresat-live-software-server/oresat-live-software-server-service.sh
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
