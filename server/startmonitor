@@ -18,7 +18,7 @@ set -x
   ip link set $dev down && \
   iw dev $dev set type managed && \
   ip link set $dev up && \
-  iw dev $dev info && \
+  iw dev $dev info;
   exit 1
 }
 exit 0
