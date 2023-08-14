@@ -1,6 +1,6 @@
 #!/bin/bash
 PKG_NAME=oresat-live-software-server
-PKG_VERS=0.0.0.4
+PKG_VERS=0.0.0.2
 mkdir -p $PKG_NAME-$PKG_VERS/{DEBIAN,usr/local/sbin/oresat-live-software-server/,lib/systemd/system}
 cat <<EOF > $PKG_NAME-$PKG_VERS/DEBIAN/control
 Architecture: armhf

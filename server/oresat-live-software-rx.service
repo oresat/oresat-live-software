@@ -7,7 +7,7 @@ User=root
 Group=root
 WorkingDirectory=/usr/local/sbin/oresat-live-software-server/
 ExecStartPre=mkdir -p public/video
-ExecStart=/usr/bin/bash rx.sh
+ExecStart=/usr/bin/bash rx.sh mon0 ./public/video/
 
 [Install]
 WantedBy=multi-user.target

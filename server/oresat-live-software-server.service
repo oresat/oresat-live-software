@@ -9,7 +9,6 @@ User=root
 Group=root
 WorkingDirectory=/usr/local/sbin/oresat-live-software-server/
 ExecStartPre=/usr/bin/npm i
-ExecStartPre=mkdir -p public/video
 ExecStart=/usr/local/sbin/node index.js video/
 
 [Install]

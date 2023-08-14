@@ -6,9 +6,19 @@ dev=${1:-mon0}
 chan=${2:-3}
 echo dev: $dev
 echo chan: $chan
-ip link set $dev down && \
-iw dev $dev set monitor fcsfail otherbss && \
-ip link set $dev up && \
-iw dev $dev set channel $chan && \
-iw dev $dev info && \
+set -x
+{
+  ip link set $dev down && \
+  iw dev $dev set monitor fcsfail otherbss && \
+  ip link set $dev up && \
+  iw dev $dev set channel $chan && \
+  iw dev $dev info 
+} || {
+  echo "setting monitor mode failed, reverting back to managed mode..." && \
+  ip link set $dev down && \
+  iw dev $dev set type managed && \
+  ip link set $dev up && \
+  iw dev $dev info && \
+  exit 1
+}
 exit 0

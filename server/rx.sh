@@ -7,4 +7,4 @@
 dev=${1:-mon0}
 video_dir=${2:-./public/video/}
 format=mp4 
-/usr/sbin/startmonitor && /usr/bin/rx --dev $dev $video_dir -e $format -v
+/usr/sbin/startmonitor $dev && /usr/bin/rx --dev $dev $video_dir -e $format -v
