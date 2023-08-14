@@ -14,11 +14,14 @@ set -x
   iw dev $dev set channel $chan && \
   iw dev $dev info 
 } || {
-  echo "setting monitor mode failed, reverting back to managed mode..." && \
+  echo "ERROR: setting monitor mode failed, reverting back to managed mode..." && \
   ip link set $dev down && \
   iw dev $dev set type managed && \
   ip link set $dev up && \
   iw dev $dev info;
+  if [ $? -ne 0 ]; then
+    echo "ERROR: one of the commands for setting device to managed mode failed, see log."
+  fi
   exit 1
 }
 exit 0
