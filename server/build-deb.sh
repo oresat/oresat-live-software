@@ -1,6 +1,6 @@
 #!/bin/bash
 PKG_NAME=oresat-live-software-server
-PKG_VERS=0.0.0.1
+PKG_VERS=0.0.0.4
 mkdir -p $PKG_NAME-$PKG_VERS/{DEBIAN,usr/local/sbin/oresat-live-software-server/,lib/systemd/system}
 cat <<EOF > $PKG_NAME-$PKG_VERS/DEBIAN/control
 Architecture: armhf
@@ -24,6 +24,7 @@ fi
 EOF
 chmod 755 $PKG_NAME-$PKG_VERS/DEBIAN/postinst
 cp -a startmonitor /usr/sbin/
-cp -r oresat-live-software-server-service.sh package.json index.js package-lock.json public/ $PKG_NAME-$PKG_VERS/usr/local/sbin/oresat-live-software-server/
+cp -r  rx.sh package.json index.js package-lock.json public/ $PKG_NAME-$PKG_VERS/usr/local/sbin/oresat-live-software-server/
 cp $PKG_NAME.service $PKG_NAME-$PKG_VERS/lib/systemd/system/
+cp oresat-live-software-rx.service $PKG_NAME-$PKG_VERS/lib/systemd/system/
 dpkg-deb --build $PKG_NAME-$PKG_VERS/

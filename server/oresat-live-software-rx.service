@@ -1,0 +1,13 @@
+[Unit]
+Description=OreSat Live Software RX Service
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/usr/local/sbin/oresat-live-software-server/
+ExecStartPre=mkdir -p public/video
+ExecStart=/usr/bin/bash rx.sh
+
+[Install]
+WantedBy=multi-user.target
