@@ -1,29 +1,27 @@
 #!/bin/bash
 # Script attempts to enable a network interface into monitor mode.
 # Note: Must be run with super user privileges
-
-
-set -e 
-
-function cleanup()
-{
-    if [[ $? -ne 0 ]]; then
-        echo -e "Usage: sudo ./startmonitor.sh [interface:mon0] [channel:3] [txpower:20]"
-    else
-        echo -e "Enabled $dev in monitor mode"
-    fi
-}
-
-# keep track of the last executed command
-trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
-# echo message before exiting
-trap cleanup EXIT
-
+# does accept params for monitor and channel, but defaults to mon0 and 3
 dev=${1:-mon0}
-
-ip link set $dev down
-iw dev $dev set monitor fcsfail otherbss 
-ip link set $dev up
-iw dev $dev set channel ${2:-3}
-iw dev $dev info
+chan=${2:-3}
+echo dev: $dev
+echo chan: $chan
+set -x
+{
+  ip link set $dev down && \
+  iw dev $dev set monitor fcsfail otherbss && \
+  ip link set $dev up && \
+  iw dev $dev set channel $chan && \
+  iw dev $dev info 
+} || {
+  echo "ERROR: setting monitor mode failed, reverting back to managed mode..." && \
+  ip link set $dev down && \
+  iw dev $dev set type managed && \
+  ip link set $dev up && \
+  iw dev $dev info;
+  if [ $? -ne 0 ]; then
+    echo "ERROR: one of the commands for setting device to managed mode failed, see log."
+  fi
+  exit 1
+}
 exit 0

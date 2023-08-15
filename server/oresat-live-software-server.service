@@ -1,11 +1,15 @@
 [Unit]
-Description=OreSat Live Software Server
+Description=OreSat Live Software Web Service
 After=network.target
+Requires=oresat-live-software-rx.service
+After=oresat-live-software-rx.service
 
 [Service]
-ExecStart=/usr/local/sbin/oresat-live-software-server/oresat-live-software-server-service.sh
 User=root
 Group=root
+WorkingDirectory=/usr/local/sbin/oresat-live-software-server/
+ExecStartPre=/usr/bin/npm i
+ExecStart=/usr/local/sbin/node index.js video/
 
 [Install]
 WantedBy=multi-user.target
