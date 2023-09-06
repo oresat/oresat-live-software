@@ -9,7 +9,7 @@ User=root
 Group=root
 WorkingDirectory=/usr/local/sbin/oresat-live-software-server/
 ExecStartPre=/usr/bin/npm i
-ExecStart=/usr/local/sbin/node index.js video/
+ExecStart=/usr/bin/node index.js video/
 
 [Install]
 WantedBy=multi-user.target
