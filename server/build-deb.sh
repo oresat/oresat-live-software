@@ -3,7 +3,7 @@ PKG_NAME=oresat-live-software-server
 PKG_VERS=0.0.0.2
 mkdir -p $PKG_NAME-$PKG_VERS/{DEBIAN,usr/local/sbin/oresat-live-software-server/,lib/systemd/system}
 cat <<EOF > $PKG_NAME-$PKG_VERS/DEBIAN/control
-Architecture: armhf
+Architecture: arm64
 Depends: nodejs (>= 10.24), npm (>= 5.8.0), oresat-dxwifi-rx (>=0.1.0-0)
 Description: Oresat Live Software Server: serves video from directory
 Homepage: https://github.com/oresat/oresat-live-software
