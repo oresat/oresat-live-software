@@ -8,6 +8,9 @@ Group=root
 WorkingDirectory=/usr/local/sbin/oresat-live-software-server/
 ExecStartPre=mkdir -p public/video
 ExecStart=/usr/bin/bash rx.sh mon0 ./public/video/
+Restart=on-failure
+RestartSec=5s
+StartLimitIntervalSec=0
 
 [Install]
 WantedBy=multi-user.target

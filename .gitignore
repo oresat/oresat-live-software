@@ -19,3 +19,5 @@
 
 # Output from camera
 camera/data/*
+
+server/oresat-live-software-server-*
