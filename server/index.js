@@ -22,7 +22,6 @@ const port = process.env.PORT || 80;
 // Paths to video messages
 const WAIT_VIDEO = "messages/wait.mp4";
 const INTERUPT_VIDEO = "messages/interrupt.mp4";
-const ENDED_VIDEO = "messages/ended.mp4";
 
 // Terminate if the directory the video files are coming from is not specified.
 if (process.argv.length != 3) {
@@ -38,7 +37,7 @@ const VIDEO_REGEX = /\w+.mp4/;
 // Global defaults to start with (waiting video, 3s sleeps)
 global.currentTimestamp = 0;
 global.currentFile = WAIT_VIDEO;
-global.duration = 3000;
+global.duration = 10;
 
 // Basic setup
 app.use(express.static(__dirname + '/public'));
@@ -49,9 +48,7 @@ app.get('/video', function (req, res) {
     // Send the video.
     res.statusCode = 200;
     console.log(global.currentTimestamp, global.currentFile, global.duration);
-    if (global.currentFile == WAIT_VIDEO ||
-        global.currentFile == INTERUPT_VIDEO ||
-        global.currentFile == ENDED_VIDEO) {
+    if (global.currentFile == WAIT_VIDEO || global.currentFile == INTERUPT_VIDEO ) {
         res.send({ 'video': global.currentFile, 'timestamp': 0 , 'duration': global.duration });
     } else {
         res.send({ 'video': global.currentFile, 'timestamp': global.currentTimestamp , 'duration': global.duration });
@@ -59,32 +56,18 @@ app.get('/video', function (req, res) {
 });
 
 // Start up the server
-// thank you to pass by reference :')
 async function startServer() {
-
     // Start out with no attempts
     var arg = {}
     arg.attempts = 0;
-
     // Wait for 10 attempts before ending stream
-    while (arg.attempts < 10) {
+    while (true) {
         await updateCurrentFile(arg);
     }
-
-    // End the stream
-    global.currentFile = ENDED_VIDEO;
-    return;
-
 }
 
 // Update the current file
 async function updateCurrentFile(arg) {
-
-    // Transmission has ended, or enough errors have come through causing an end
-    if (arg.attempts >= 10) {
-        return;
-    }
-
     // Get files to look through
     const dir = fs.readdirSync('public/' + VIDEO_PATH, options = {"withFileTypes": true});
     var nextTime = null;
@@ -137,7 +120,6 @@ async function updateCurrentFile(arg) {
         setTimeout(() => { return resolve(1); }, duration);
     });
 }
-
 // Get duration of video
 async function getDurationOfVideoMs(filepath) {
     ffprobe.FFPROBE_PATH = ffprobeInstaller.path;
@@ -155,11 +137,9 @@ async function getDurationOfVideoMs(filepath) {
         });
     });
 }
-
 // Set up listening
 http.listen(port, host, () => {
     console.log(`Server is running on http://${host}:${port}`);
 });
-
 // Start the server
 startServer();

@@ -4,8 +4,8 @@ NPM_VERS='7.5.2+ds-2'
 sudo apt-get -y install nodejs=$NODE_VERS npm=$NPM_VERS
 npm i
 PKG_NAME=oresat-live-software-server
-PKG_VERS=0.0.0.3
-mkdir -p $PKG_NAME-$PKG_VERS/{DEBIAN,usr/local/sbin/oresat-live-software-server/,lib/systemd/system}
+PKG_VERS=0.0.0.4
+mkdir -p $PKG_NAME-$PKG_VERS/{DEBIAN,usr/local/sbin/oresat-live-software-server/,lib/systemd/system,etc/cron.d/}
 cat <<EOF > $PKG_NAME-$PKG_VERS/DEBIAN/control
 Architecture: arm64
 Depends: nodejs (=$NODE_VERS), npm (=$NPM_VERS), oresat-dxwifi-rx (>=0.1.0-0)
@@ -31,4 +31,5 @@ cp -a startmonitor /usr/sbin/
 cp -r  rx.sh package.json index.js package-lock.json public/ node_modules/ $PKG_NAME-$PKG_VERS/usr/local/sbin/oresat-live-software-server/
 cp $PKG_NAME.service $PKG_NAME-$PKG_VERS/lib/systemd/system/
 cp oresat-live-software-rx.service $PKG_NAME-$PKG_VERS/lib/systemd/system/
+cp cron-clean-videos $PKG_NAME-$PKG_VERS/etc/cron.d/clean-old-oresat-videos
 dpkg-deb --build $PKG_NAME-$PKG_VERS/

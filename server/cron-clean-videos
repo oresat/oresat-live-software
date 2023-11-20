@@ -1,0 +1,1 @@
+*/5 * * * * root find /usr/local/sbin/oresat-live-software-server/public/video/* -type f -mmin +5 -exec rm {} \;

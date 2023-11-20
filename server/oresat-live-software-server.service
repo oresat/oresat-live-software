@@ -8,6 +8,7 @@ After=oresat-live-software-rx.service
 User=root
 Group=root
 WorkingDirectory=/usr/local/sbin/oresat-live-software-server/
+ExecStartPre=/usr/bin/rm -f /usr/local/sbin/oresat-live-software-server/public/video/*
 ExecStart=/usr/bin/node index.js video/
 
 [Install]
