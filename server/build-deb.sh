@@ -39,7 +39,7 @@ fi
 EOF" || err_exit "writing to DEBIAN postinst file"
 chmod 755 $PKG_NAME-$PKG_VERS/DEBIAN/postinst || err_exit "chmodding the postinst file"
 chmod +x startmonitor  || err_exit "making startmonitor scripts executable"
-chmod 0644 cron-clean-videos  || err_exit "setting correct perms on cron-clean-videos"
+sudo chmod 0644 cron-clean-videos  || err_exit "setting correct perms on cron-clean-videos"
 sudo chown root:root cron-clean-videos  || err_exit "setting correct ownership on cron-clean-videos"
 cp -a startmonitor $PKG_NAME-$PKG_VERS/usr/sbin/ || err_exit "start monitor copying files to usr/sbin/ destination dir"
 cp -r rx.sh package.json index.js package-lock.json public/ node_modules/ $PKG_NAME-$PKG_VERS/usr/local/sbin/oresat-live-software-server/ || err_exit "copying service files to usr/local/sbin/oresat-live-software-server/ destination dir"
