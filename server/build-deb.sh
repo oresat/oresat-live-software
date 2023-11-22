@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
 PKG_NAME=oresat-live-software-server
-PKG_VERS=0.0.0.5
+PKG_VERS=0.0.0.6
 NODE_VERS='12.22.12~dfsg-1~deb11u4'
 NPM_VERS='7.5.2+ds-2'
 RX_SERVICE=oresat-live-software-rx.service
@@ -38,9 +38,12 @@ if [ \"\\\$1\" = \"configure\" ]; then
 fi
 EOF" || err_exit "writing to DEBIAN postinst file"
 chmod 755 $PKG_NAME-$PKG_VERS/DEBIAN/postinst || err_exit "chmodding the postinst file"
+chmod +x startmonitor  || err_exit "making startmonitor scripts executable"
+chmod 0644 cron-clean-videos  || err_exit "setting correct perms on cron-clean-videos"
+sudo chown root:root cron-clean-videos  || err_exit "setting correct ownership on cron-clean-videos"
 cp -a startmonitor $PKG_NAME-$PKG_VERS/usr/sbin/ || err_exit "start monitor copying files to usr/sbin/ destination dir"
 cp -r rx.sh package.json index.js package-lock.json public/ node_modules/ $PKG_NAME-$PKG_VERS/usr/local/sbin/oresat-live-software-server/ || err_exit "copying service files to usr/local/sbin/oresat-live-software-server/ destination dir"
 cp $RX_SERVICE $PKG_NAME.service $PKG_NAME-$PKG_VERS/lib/systemd/system/ || err_exit "copying service files to lib/systemd/system/ destination dir"
-cp cron-clean-videos $PKG_NAME-$PKG_VERS/etc/cron.d/clean-old-oresat-videos || err_exit "copying cron files to destination etc/cron.d/ dir"
+cp cron-clean-videos $PKG_NAME-$PKG_VERS/etc/cron.d/ || err_exit "copying cron files to destination etc/cron.d/ dir"
 dpkg-deb --build $PKG_NAME-$PKG_VERS/  || err_exit "dpkg-deb"
 set +x
