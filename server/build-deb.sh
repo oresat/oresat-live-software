@@ -25,7 +25,6 @@ Section: net
 Version: $PKG_VERS
 EOF" || err_exit "writing to DEBIAN control file"
 sh -c "cat > $PKG_NAME-$PKG_VERS/DEBIAN/postinst <<EOF
-cat <<EOF > $PKG_NAME-$PKG_VERS/DEBIAN/
 #!/bin/sh
 set -e
 if [ "\$1" = "configure" ]; then
