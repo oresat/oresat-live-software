@@ -27,7 +27,7 @@ EOF" || err_exit "writing to DEBIAN control file"
 sh -c "cat > $PKG_NAME-$PKG_VERS/DEBIAN/postinst <<EOF
 #!/bin/sh
 set -e
-if [ "\$1" = "configure" ]; then
+if [ \"\\\$1\" = \"configure\" ]; then
     # Enable and start the systemd service
     systemctl enable $PKG_NAME
     systemctl start $PKG_NAME
