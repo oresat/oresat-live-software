@@ -1,0 +1,60 @@
+cmake_minimum_required(VERSION 3.2)
+project(camera)
+set(ORESATLIVESW_VERSION_MAJOR "0")
+set(ORESATLIVESW_VERSION_MINOR "0")
+set(ORESATLIVESW_VERSION_PATCH "0")
+set(ORESATLIVESW_VERSION_REVISION "1")
+string(CONCAT CPACK_PACKAGE_VERSION
+    "${ORESATLIVESW_VERSION_MAJOR}."
+    "${ORESATLIVESW_VERSION_MINOR}."
+    "${ORESATLIVESW_VERSION_PATCH}-"
+    "${ORESATLIVESW_VERSION_REVISION}"
+    )
+# Include and output directories
+include_directories(
+    ${PROJECT_SOURCE_DIR}
+)
+set(ORESATLIVESW_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
+
+# Global CPack configuration
+set(CPACK_GENERATOR "DEB")
+set(CPACK_PACKAGE_NAME "oresat-live-software-camera")
+set(CPACK_PACKAGE_CONTACT "PSAS <oresat@pdx.edu>")
+set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "Oresat Live Software")
+set(CPACK_DEBIAN_PACKAGE_SECTION "net")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libv4l-dev (>= 1.16.3-3), iw")
+set(CPACK_DEB_COMPONENT_INSTALL ON)
+set(CPACK_DEBIAN_ENABLE_COMPONENT_DEPENDS ON)
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/oresat/oresat-live-software")
+
+# use host architecture
+execute_process(COMMAND dpkg --print-architecture OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# RX component CPack config
+string(CONCAT CPACK_DEBIAN_CAMERA_FILE_NAME
+    "${CPACK_PACKAGE_NAME}_"
+    "${CPACK_PACKAGE_VERSION}_"
+    "${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}.deb"
+    )
+
+include(CPack)
+set(CAPTURE_DESCRIPTION "OreSat Live Software camera capture program")
+file(GLOB sources ./*)
+add_executable(capture ${sources})
+target_link_libraries(capture v4l1 v4l2)
+set_target_properties( capture
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${ORESATLIVESW_RUNTIME_OUTPUT_DIRECTORY}
+    )
+install(
+    TARGETS capture
+    DESTINATION /usr/bin
+    PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    COMPONENT CAPTURE
+    )
+cpack_add_component(
+    CAPTURE
+    DISPLAY_NAME CAPTURE
+    DESCRIPTION ${CAPTURE_DESCRIPTION}
+    GROUP CAPTURE
+    )
